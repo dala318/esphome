@@ -44,6 +44,7 @@ class SX127x : public Component,
   void setup() override;
   void loop() override;
   void dump_config() override;
+  void set_auto_cal(bool auto_cal) { this->auto_cal_ = auto_cal; }
   void set_bandwidth(SX127xBw bandwidth) { this->bandwidth_ = bandwidth; }
   void set_bitrate(uint32_t bitrate) { this->bitrate_ = bitrate; }
   void set_bitsync(bool bitsync) { this->bitsync_ = bitsync; }
@@ -53,8 +54,9 @@ class SX127x : public Component,
   void set_dio0_pin(InternalGPIOPin *dio0_pin) { this->dio0_pin_ = dio0_pin; }
   void set_frequency(uint32_t frequency) { this->frequency_ = frequency; }
   void set_mode_rx();
-  void set_mode_standby();
   void set_mode_tx();
+  void set_mode_standby();
+  void set_mode_sleep();
   void set_modulation(uint8_t modulation) { this->modulation_ = modulation; }
   void set_pa_pin(uint8_t pin) { this->pa_pin_ = pin; }
   void set_pa_power(uint8_t power) { this->pa_power_ = power; }
@@ -104,6 +106,7 @@ class SX127x : public Component,
   uint8_t shaping_;
   uint8_t spreading_factor_;
   float rx_floor_;
+  bool auto_cal_;
   bool bitsync_;
   bool crc_enable_;
   bool rx_start_;
