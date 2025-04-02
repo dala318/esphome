@@ -5,11 +5,11 @@ from esphome.components.packet_transport import (
 )
 from esphome.cpp_types import PollingComponent
 
-from .. import SX127X_DEVICE_SCHEMA, register_sx127x_client, sx127x_ns
+from .. import SX127X_SCHEMA, register_sx127x_client, sx127x_ns
 
 SX127xTransport = sx127x_ns.class_("SX127xTransport", PacketTransport, PollingComponent)
 
-CONFIG_SCHEMA = transport_schema(SX127xTransport).extend(SX127X_DEVICE_SCHEMA)
+CONFIG_SCHEMA = transport_schema(SX127xTransport).extend(SX127X_SCHEMA)
 
 
 async def to_code(config):
