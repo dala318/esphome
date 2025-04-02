@@ -96,8 +96,7 @@ void SX127x::configure() {
   this->run_image_cal();
 
   // set correct modulation and go back to sleep
-  this->write_register_(REG_OP_MODE, this->modulation_ | MODE_SLEEP);
-  delayMicroseconds(1000);
+  this->set_mode_sleep();
 
   // config pa
   if (this->pa_pin_ == PA_PIN_BOOST) {
@@ -273,6 +272,13 @@ void SX127x::transmit_packet(const std::vector<uint8_t> &packet) {
   }
 }
 
+void SX127x::call_listeners_(const std::vector<uint8_t> &packet, float rssi, float snr) {
+  for (auto &listener : this->listeners_) {
+    listener->on_packet(packet, rssi, snr);
+  }
+  this->packet_trigger_->trigger(packet, rssi, snr);
+}
+
 void SX127x::loop() {
   if (this->modulation_ == MOD_LORA) {
     if (this->dio0_pin_->digital_read()) {
@@ -285,9 +291,9 @@ void SX127x::loop() {
         this->write_register_(REG_FIFO_ADDR_PTR, addr);
         this->read_fifo_(packet);
         if (this->frequency_ > 700000000) {
-          this->packet_trigger_->trigger(packet, (float) rssi - 157, (float) snr / 4);
+          this->call_listeners_(packet, (float) rssi - 157, (float) snr / 4);
         } else {
-          this->packet_trigger_->trigger(packet, (float) rssi - 164, (float) snr / 4);
+          this->call_listeners_(packet, (float) rssi - 164, (float) snr / 4);
         }
       }
       this->write_register_(REG_IRQ_FLAGS, 0xFF);
@@ -295,7 +301,7 @@ void SX127x::loop() {
   } else if (this->payload_length_ > 0 && this->dio0_pin_->digital_read()) {
     std::vector<uint8_t> packet(this->payload_length_);
     this->read_fifo_(packet);
-    this->packet_trigger_->trigger(packet, 0.0f, 0.0f);
+    this->call_listeners_(packet, 0.0f, 0.0f);
   }
 }
 
