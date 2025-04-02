@@ -34,6 +34,8 @@ enum SX127xBw : uint8_t {
   SX127X_BW_500_0,
 };
 
+static const uint8_t SX127X_MAX_PACKET_SIZE = 256;
+
 class SX127x : public Component,
                public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST, spi::CLOCK_POLARITY_LOW, spi::CLOCK_PHASE_LEADING,
                                      spi::DATA_RATE_8MHZ> {
