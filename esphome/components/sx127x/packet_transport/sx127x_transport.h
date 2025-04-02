@@ -1,5 +1,6 @@
 #pragma once
 
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/components/packet_transport/packet_transport.h"
 #include <vector>
@@ -10,7 +11,7 @@ namespace sx127x {
 
 class SX127xTransport : public packet_transport::PacketTransport, public Parented<SX127x> {
  public:
-  void loop() override;
+  void setup() override;
   void update() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE_LATE; }
 

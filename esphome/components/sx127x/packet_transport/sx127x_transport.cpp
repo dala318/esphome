@@ -1,3 +1,4 @@
+#include "esphome/core/automation.h"
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
 #include "sx127x_transport.h"
@@ -7,53 +8,20 @@ namespace sx127x {
 
 static const char *const TAG = "sx127x_transport";
 
-void SX127xTransport::loop() {
-  PacketTransport::loop();
-
-  // while (this->parent_->available()) {
-  //   uint8_t byte;
-  //   if (!this->parent_->read_byte(&byte)) {
-  //     ESP_LOGW(TAG, "Failed to read byte from SX127x");
-  //     return;
-  //   }
-  //   if (byte == FLAG_BYTE) {
-  //     if (this->rx_started_ && this->receive_buffer_.size() > 6) {
-  //       auto len = this->receive_buffer_.size();
-  //       auto crc = crc16(this->receive_buffer_.data(), len - 2);
-  //       if (crc != (this->receive_buffer_[len - 2] | (this->receive_buffer_[len - 1] << 8))) {
-  //         ESP_LOGD(TAG, "CRC mismatch, discarding packet");
-  //         this->rx_started_ = false;
-  //         this->receive_buffer_.clear();
-  //         continue;
-  //       }
-  //       this->receive_buffer_.resize(len - 2);
-  //       this->process_(this->receive_buffer_);
-  //       this->rx_started_ = false;
-  //     } else {
-  //       this->rx_started_ = true;
-  //     }
-  //     this->receive_buffer_.clear();
-  //     this->rx_control_ = false;
-  //     continue;
-  //   }
-  //   if (!this->rx_started_)
-  //     continue;
-  //   if (byte == CONTROL_BYTE) {
-  //     this->rx_control_ = true;
-  //     continue;
-  //   }
-  //   if (this->rx_control_) {
-  //     byte ^= 0x20;
-  //     this->rx_control_ = false;
-  //   }
-  //   if (this->receive_buffer_.size() == MAX_PACKET_SIZE) {
-  //     ESP_LOGD(TAG, "Packet too large, discarding");
-  //     this->rx_started_ = false;
-  //     this->receive_buffer_.clear();
-  //     continue;
-  //   }
-  //   this->receive_buffer_.push_back(byte);
-  // }
+void SX127xTransport::setup() {
+  PacketTransport::setup();
+  if (!this->providers_.empty() || this->is_encrypted_()) {
+    Automation<std::vector<uint8_t>, float, float> *automation_id;
+    automation_id = new Automation<std::vector<uint8_t>, float, float>(this->parent_->get_packet_trigger());
+    LambdaAction<std::vector<uint8_t>, float, float> *lambdaaction_id_2;
+    lambdaaction_id_2 = new LambdaAction<std::vector<uint8_t>, float, float>(
+        [=](std::vector<uint8_t> x, float rssi, float snr) -> void {
+          ESP_LOGD("lambda", "packet %s", format_hex(x).c_str());
+          ESP_LOGD("lambda", "rssi %.2f", rssi);
+          ESP_LOGD("lambda", "snr %.2f", snr);
+        });
+    automation_id_3->add_actions({lambdaaction_id_2});
+  }
 }
 
 void SX127xTransport::update() {
