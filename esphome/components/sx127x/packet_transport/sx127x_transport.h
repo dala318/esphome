@@ -8,12 +8,12 @@
 namespace esphome {
 namespace sx127x {
 
+class SX127xTransport;
+
 class SX127xTransportListener : public SX127xListener {
  public:
-  SX127xTransportListener(SX127xTransport *parent) { this->parent_ = parent; }
-  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override {
-    this->parent_->packet_received(packet, rssi, snr);
-  }
+  SX127xTransportListener(SX127xTransport *parent);
+  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
 
  protected:
   SX127xTransport *parent_;
