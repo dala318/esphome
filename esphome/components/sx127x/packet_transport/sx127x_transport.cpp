@@ -7,6 +7,12 @@ namespace sx127x {
 
 static const char *const TAG = "sx127x_transport";
 
+SX127xTransportListener::SX127xTransportListener(SX127xTransport *parent) { this->parent_ = parent; }
+
+void SX127xTransportListener::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
+  this->parent_->packet_received(packet, rssi, snr);
+}
+
 void SX127xTransport::setup() {
   PacketTransport::setup();
   this->parent_->register_listener(new SX127xTransportListener(this));
