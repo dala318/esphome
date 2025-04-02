@@ -31,6 +31,7 @@ CONF_RX_FLOOR = "rx_floor"
 CONF_RX_START = "rx_start"
 CONF_SHAPING = "shaping"
 CONF_SPREADING_FACTOR = "spreading_factor"
+CONF_SX127X_ID = "sx127x_id"
 CONF_SYNC_VALUE = "sync_value"
 
 sx127x_ns = cg.esphome_ns.namespace("sx127x")
@@ -40,6 +41,13 @@ SX127xOpMode = sx127x_ns.enum("SX127xOpMode")
 SX127xPaConfig = sx127x_ns.enum("SX127xPaConfig")
 SX127xPaRamp = sx127x_ns.enum("SX127xPaRamp")
 SX127xModemCfg1 = sx127x_ns.enum("SX127xModemCfg1")
+
+SX127X_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_SX127X_ID): cv.use_id(SX127x),
+    }
+)
+
 
 BW = {
     "2_6kHz": SX127xBw.SX127X_BW_2_6,
@@ -226,6 +234,12 @@ CONFIG_SCHEMA = cv.All(
 )
 
 
+async def register_sx127x_client(var, config):
+    sx127x_var = await cg.get_variable(config[CONF_SX127X_ID])
+    cg.add(var.set_parent(sx127x_var))
+    return sx127x_var
+
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -277,7 +291,7 @@ async def to_code(config):
 
 NO_ARGS_ACTION_SCHEMA = automation.maybe_simple_id(
     {
-        cv.GenerateID(): cv.use_id(SX127x),
+        cv.GenerateID(CONF_SX127X_ID): cv.use_id(SX127x),
     }
 )
 
@@ -305,7 +319,7 @@ async def no_args_action_to_code(config, action_id, template_arg, args):
 
 SEND_PACKET_ACTION_SCHEMA = cv.maybe_simple_value(
     {
-        cv.GenerateID(): cv.use_id(SX127x),
+        cv.GenerateID(CONF_SX127X_ID): cv.use_id(SX127x),
         cv.Required(CONF_DATA): cv.templatable(validate_raw_data),
     },
     key=CONF_DATA,
