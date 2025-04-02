@@ -23,7 +23,7 @@ class SX127xTransport : public packet_transport::PacketTransport, public Parente
  public:
   void setup() override;
   void update() override;
-  float get_setup_priority() const override { return setup_priority::HARDWARE_LATE; }
+  float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
   void packet_received(const std::vector<uint8_t> &packet, float rssi, float snr);
 
  protected:
