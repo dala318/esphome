@@ -291,7 +291,7 @@ async def to_code(config):
 
 NO_ARGS_ACTION_SCHEMA = automation.maybe_simple_id(
     {
-        cv.GenerateID(CONF_SX127X_ID): cv.use_id(SX127x),
+        cv.GenerateID(): cv.use_id(SX127x),
     }
 )
 
@@ -319,7 +319,7 @@ async def no_args_action_to_code(config, action_id, template_arg, args):
 
 SEND_PACKET_ACTION_SCHEMA = cv.maybe_simple_value(
     {
-        cv.GenerateID(CONF_SX127X_ID): cv.use_id(SX127x),
+        cv.GenerateID(): cv.use_id(SX127x),
         cv.Required(CONF_DATA): cv.templatable(validate_raw_data),
     },
     key=CONF_DATA,
