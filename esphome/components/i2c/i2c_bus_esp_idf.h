@@ -23,6 +23,7 @@ class IDFI2CBus : public I2CBus, public Component {
   ErrorCode writev(uint8_t address, WriteBuffer *buffers, size_t cnt, bool stop) override;
   float get_setup_priority() const override { return setup_priority::BUS; }
 
+  void set_report_activity(bool report_activity) { this->set_activity_reporting(report_activity); }
   void set_scan(bool scan) { scan_ = scan; }
   void set_sda_pin(uint8_t sda_pin) { sda_pin_ = sda_pin; }
   void set_sda_pullup_enabled(bool sda_pullup_enabled) { sda_pullup_enabled_ = sda_pullup_enabled; }
