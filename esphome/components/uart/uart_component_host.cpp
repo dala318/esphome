@@ -203,6 +203,9 @@ void HostUartComponent::write_array(const uint8_t *data, size_t len) {
   if (this->file_descriptor_ == -1) {
     return;
   }
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Writing data");
+#endif
   size_t written = ::write(this->file_descriptor_, data, len);
   if (written != len) {
     this->update_error_(strerror(errno));
@@ -222,12 +225,18 @@ bool HostUartComponent::peek_byte(uint8_t *data) {
   }
   if (!this->has_peek_) {
     if (!this->check_read_timeout_()) {
+#ifdef USE_ACTIVITY_LED
+      this->activity_set_bussy("Read timeout");
+#endif
       return false;
     }
     if (::read(this->file_descriptor_, &this->peek_byte_, 1) != 1) {
       this->update_error_(strerror(errno));
       return false;
     }
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_active("Reading data");
+#endif
     this->has_peek_ = true;
   }
   *data = this->peek_byte_;
@@ -238,8 +247,12 @@ bool HostUartComponent::read_array(uint8_t *data, size_t len) {
   if ((this->file_descriptor_ == -1) || (len == 0)) {
     return false;
   }
-  if (!this->check_read_timeout_(len))
+  if (!this->check_read_timeout_(len)) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   uint8_t *data_ptr = data;
   size_t length_to_read = len;
   if (this->has_peek_) {
@@ -255,6 +268,9 @@ bool HostUartComponent::read_array(uint8_t *data, size_t len) {
       return false;
     }
   }
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Reading data");
+#endif
 #ifdef USE_UART_DEBUGGER
   for (size_t i = 0; i < len; i++) {
     this->debug_callback_.call(UART_DIRECTION_RX, data[i]);

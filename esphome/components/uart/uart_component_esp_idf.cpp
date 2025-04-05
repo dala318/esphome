@@ -170,6 +170,9 @@ void IDFUARTComponent::dump_config() {
 }
 
 void IDFUARTComponent::write_array(const uint8_t *data, size_t len) {
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Writing data");
+#endif
   xSemaphoreTake(this->lock_, portMAX_DELAY);
   uart_write_bytes(this->uart_num_, data, len);
   xSemaphoreGive(this->lock_);
@@ -181,8 +184,12 @@ void IDFUARTComponent::write_array(const uint8_t *data, size_t len) {
 }
 
 bool IDFUARTComponent::peek_byte(uint8_t *data) {
-  if (!this->check_read_timeout_())
+  if (!this->check_read_timeout_()) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   xSemaphoreTake(this->lock_, portMAX_DELAY);
   if (this->has_peek_) {
     *data = this->peek_byte_;
@@ -191,6 +198,9 @@ bool IDFUARTComponent::peek_byte(uint8_t *data) {
     if (len == 0) {
       *data = 0;
     } else {
+#ifdef USE_ACTIVITY_LED
+      this->activity_set_active("Reading data");
+#endif
       this->has_peek_ = true;
       this->peek_byte_ = *data;
     }
@@ -201,8 +211,12 @@ bool IDFUARTComponent::peek_byte(uint8_t *data) {
 
 bool IDFUARTComponent::read_array(uint8_t *data, size_t len) {
   size_t length_to_read = len;
-  if (!this->check_read_timeout_(len))
+  if (!this->check_read_timeout_(len)) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   xSemaphoreTake(this->lock_, portMAX_DELAY);
   if (this->has_peek_) {
     length_to_read--;
@@ -210,8 +224,12 @@ bool IDFUARTComponent::read_array(uint8_t *data, size_t len) {
     data++;
     this->has_peek_ = false;
   }
-  if (length_to_read > 0)
+  if (length_to_read > 0) {
     uart_read_bytes(this->uart_num_, data, length_to_read, 20 / portTICK_PERIOD_MS);
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_active("Reading data");
+#endif
+  }
   xSemaphoreGive(this->lock_);
 #ifdef USE_UART_DEBUGGER
   for (size_t i = 0; i < len; i++) {

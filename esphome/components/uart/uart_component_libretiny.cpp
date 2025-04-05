@@ -116,6 +116,9 @@ void LibreTinyUARTComponent::dump_config() {
 }
 
 void LibreTinyUARTComponent::write_array(const uint8_t *data, size_t len) {
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Writing data");
+#endif
   this->serial_->write(data, len);
 #ifdef USE_UART_DEBUGGER
   for (size_t i = 0; i < len; i++) {
@@ -125,16 +128,31 @@ void LibreTinyUARTComponent::write_array(const uint8_t *data, size_t len) {
 }
 
 bool LibreTinyUARTComponent::peek_byte(uint8_t *data) {
-  if (!this->check_read_timeout_())
+  if (!this->check_read_timeout_()) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   *data = this->serial_->peek();
+#ifdef USE_ACTIVITY_LED
+  if (data[0] != 0u)
+    this->activity_set_active("Reading data");
+#endif
   return true;
 }
 
 bool LibreTinyUARTComponent::read_array(uint8_t *data, size_t len) {
-  if (!this->check_read_timeout_(len))
+  if (!this->check_read_timeout_(len)) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   this->serial_->readBytes(data, len);
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Reading data");
+#endif
 #ifdef USE_UART_DEBUGGER
   for (size_t i = 0; i < len; i++) {
     this->debug_callback_.call(UART_DIRECTION_RX, data[i]);

@@ -17,6 +17,8 @@ class LibreTinyUARTComponent : public UARTComponent, public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::BUS; }
 
+  void set_report_activity(bool report_activity) { this->set_activity_reporting(report_activity); }
+
   void write_array(const uint8_t *data, size_t len) override;
 
   bool peek_byte(uint8_t *data) override;
