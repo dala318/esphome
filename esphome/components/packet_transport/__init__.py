@@ -5,7 +5,11 @@ import logging
 
 import esphome.codegen as cg
 from esphome.components.api import CONF_ENCRYPTION
-from esphome.components.binary_sensor import BinarySensor
+from esphome.components.binary_sensor import (
+    BinarySensor,
+    binary_sensor_schema,
+    new_binary_sensor,
+)
 from esphome.components.sensor import Sensor
 import esphome.config_validation as cv
 from esphome.const import (
@@ -16,6 +20,8 @@ from esphome.const import (
     CONF_NAME,
     CONF_PLATFORM,
     CONF_SENSORS,
+    DEVICE_CLASS_CONNECTIVITY,
+    ENTITY_CATEGORY_DIAGNOSTIC,
 )
 from esphome.core import CORE
 from esphome.cpp_generator import MockObjClass
@@ -37,6 +43,7 @@ CONF_REMOTE_ID = "remote_id"
 CONF_PING_PONG_ENABLE = "ping_pong_enable"
 CONF_PING_PONG_RECYCLE_TIME = "ping_pong_recycle_time"
 CONF_ROLLING_CODE_ENABLE = "rolling_code_enable"
+CONF_STATUS_SENSOR = "status_sensor"
 CONF_TRANSPORT_ID = "transport_id"
 
 
@@ -76,9 +83,16 @@ ENCRYPTION_SCHEMA = {
     )
 }
 
+STATUS_SENSOR_SCHEMA = binary_sensor_schema(
+    PacketTransport,
+    device_class=DEVICE_CLASS_CONNECTIVITY,
+    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+)
+
 PROVIDER_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_NAME): provider_name_validate,
+        cv.Optional(CONF_STATUS_SENSOR): STATUS_SENSOR_SCHEMA,
     }
 ).extend(ENCRYPTION_SCHEMA)
 
@@ -177,6 +191,9 @@ async def register_packet_transport(var, config):
         name = provider[CONF_NAME]
         if encryption := provider.get(CONF_ENCRYPTION):
             cg.add(var.set_provider_encryption(name, hash_encryption_key(encryption)))
+        if status_sensor := provider.get(CONF_STATUS_SENSOR):
+            var = await new_binary_sensor(status_sensor)
+            cg.add(var.set_provider_status_sensor(provider, var))
 
     for sens_conf in config.get(CONF_SENSORS, ()):
         sens_id = sens_conf[CONF_ID]

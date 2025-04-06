@@ -27,6 +27,8 @@ struct Provider {
   std::vector<uint8_t> encryption_key;
   const char *name;
   uint32_t last_code[2];
+  uint32_t last_key_response_time;
+  binary_sensor::BinarySensor *status_sensor{nullptr};
 };
 
 #ifdef USE_SENSOR
@@ -80,6 +82,7 @@ class PacketTransport : public PollingComponent {
       provider.last_code[0] = 0;
       provider.last_code[1] = 0;
       provider.name = hostname;
+      provider.last_key_response_time = 0;
       this->providers_[hostname] = provider;
 #ifdef USE_SENSOR
       this->remote_sensors_[hostname] = std::map<std::string, sensor::Sensor *>();
@@ -96,6 +99,9 @@ class PacketTransport : public PollingComponent {
   void set_ping_pong_recycle_time(uint32_t recycle_time) { this->ping_pong_recyle_time_ = recycle_time; }
   void set_provider_encryption(const char *name, std::vector<uint8_t> key) {
     this->providers_[name].encryption_key = std::move(key);
+  }
+  void set_provider_status_sensor(const char *name, binary_sensor::BinarySensor *sensor) {
+    this->providers_[name].status_sensor = sensor;
   }
   void set_platform_name(const char *name) { this->platform_name_ = name; }
 

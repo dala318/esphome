@@ -226,6 +226,18 @@ void PacketTransport::update() {
   auto now = millis() / 1000;
   if (this->last_key_time_ + this->ping_pong_recyle_time_ < now) {
     this->resend_ping_key_ = this->ping_pong_enable_;
+    ESP_LOGD(TAG, "Ping request, age %u", now - this->last_key_time_);
+    for (const auto &provider : this->providers_) {
+      if (provider.second.status_sensor != nullptr) {
+        if (provider.second.last_key_response_time + (this->ping_pong_recyle_time_ * 2) > now) {
+          ESP_LOGW(TAG, "Ping request for %s timeout", provider.first);
+          provider.second.status_sensor->publish_state(false);
+        } else {
+          ESP_LOGD(TAG, "Ping request for %s ok", provider.first);
+          provider.second.status_sensor->publish_state(true);
+        }
+      }
+    }
     this->last_key_time_ = now;
   }
 }
@@ -355,6 +367,7 @@ void PacketTransport::process_(std::vector<uint8_t> &data) {
       auto key = get_uint32(buf);
       if (key == this->ping_key_) {
         ping_key_seen = true;
+        provider.last_key_response_time = millis() / 1000;
         ESP_LOGV(TAG, "Found good ping key %X", (unsigned) key);
       } else {
         ESP_LOGV(TAG, "Unknown ping key %X", (unsigned) key);
