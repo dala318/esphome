@@ -195,7 +195,6 @@ async def register_packet_transport(var, config):
         if encryption := provider.get(CONF_ENCRYPTION):
             cg.add(var.set_provider_encryption(name, hash_encryption_key(encryption)))
         if status_sensor := provider.get(CONF_STATUS_SENSOR):
-            print(status_sensor)
             sens = await new_binary_sensor(status_sensor)
             cg.add(var.set_provider_status_sensor(name, sens))
 
