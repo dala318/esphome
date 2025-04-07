@@ -87,6 +87,11 @@ STATUS_SENSOR_SCHEMA = binary_sensor_schema(
     PacketTransport,
     device_class=DEVICE_CLASS_CONNECTIVITY,
     entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+).extend(
+    {
+        cv.GenerateID(CONF_TRANSPORT_ID): cv.use_id(PacketTransport),
+        # cv.Optional(CONF_REMOTE_ID): cv.string_strict,
+    }
 )
 
 PROVIDER_SCHEMA = cv.Schema(
@@ -193,7 +198,7 @@ async def register_packet_transport(var, config):
             cg.add(var.set_provider_encryption(name, hash_encryption_key(encryption)))
         if status_sensor := provider.get(CONF_STATUS_SENSOR):
             var = await new_binary_sensor(status_sensor)
-            cg.add(var.set_provider_status_sensor(provider, var))
+            cg.add(var.set_provider_status_sensor(name, var))
 
     for sens_conf in config.get(CONF_SENSORS, ()):
         sens_id = sens_conf[CONF_ID]
