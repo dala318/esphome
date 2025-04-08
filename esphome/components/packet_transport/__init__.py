@@ -201,7 +201,7 @@ async def register_packet_transport(var, config):
             sens = await new_binary_sensor(status_sensor)
             cg.add(var.set_provider_status_sensor(name, sens))
     if define_binary_sensor:
-        cg.add_define("USE_BINARY_SENSOR")
+        cg.add_define("USE_STATUS_SENSOR")
 
     for sens_conf in config.get(CONF_SENSORS, ()):
         sens_id = sens_conf[CONF_ID]

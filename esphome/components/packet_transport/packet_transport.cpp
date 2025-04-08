@@ -226,9 +226,10 @@ void PacketTransport::update() {
   uint32_t now = millis() / 1000u;
   if (this->last_key_time_ + this->ping_pong_recyle_time_ < now) {
     this->resend_ping_key_ = this->ping_pong_enable_;
-    ESP_LOGD(TAG, "Ping request, age %u", now - this->last_key_time_);
+    ESP_LOGV(TAG, "Ping request, age %u", now - this->last_key_time_);
     this->last_key_time_ = now;
   }
+#ifdef USE_STATUS_SENSOR
   for (const auto &provider : this->providers_) {
     if (provider.second.status_sensor != nullptr) {
       uint32_t key_response_age = now - provider.second.last_key_response_time;
@@ -236,6 +237,12 @@ void PacketTransport::update() {
         if (provider.second.status_sensor->state) {
           ESP_LOGW(TAG, "Ping status for %s timeout at %u with age %u", provider.first.c_str(), now, key_response_age);
           provider.second.status_sensor->publish_state(false);
+        }
+        for (auto &sensor : this->remote_sensors_[provider.first]) {
+          sensor.second->publish_state(0);
+        }
+        for (auto &sensor : this->remote_binary_sensors_[provider.first]) {
+          sensor.second->publish_state(false);
         }
       } else {
         if (!provider.second.status_sensor->state) {
@@ -245,6 +252,7 @@ void PacketTransport::update() {
       }
     }
   }
+#endif
 }
 
 void PacketTransport::add_key_(const char *name, uint32_t key) {

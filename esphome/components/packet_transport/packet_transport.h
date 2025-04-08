@@ -5,7 +5,7 @@
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
 #endif
-#ifdef USE_BINARY_SENSOR
+#if defined(USE_BINARY_SENSOR) || defined(USE_STATUS_SENSOR)
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
 #
@@ -28,7 +28,9 @@ struct Provider {
   const char *name;
   uint32_t last_code[2];
   uint32_t last_key_response_time;
+#ifdef USE_STATUS_SENSOR
   binary_sensor::BinarySensor *status_sensor{nullptr};
+#endif
 };
 
 #ifdef USE_SENSOR
@@ -100,9 +102,11 @@ class PacketTransport : public PollingComponent {
   void set_provider_encryption(const char *name, std::vector<uint8_t> key) {
     this->providers_[name].encryption_key = std::move(key);
   }
+#ifdef USE_STATUS_SENSOR
   void set_provider_status_sensor(const char *name, binary_sensor::BinarySensor *sensor) {
     this->providers_[name].status_sensor = sensor;
   }
+#endif
   void set_platform_name(const char *name) { this->platform_name_ = name; }
 
  protected:
