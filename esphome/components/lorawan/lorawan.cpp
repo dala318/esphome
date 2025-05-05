@@ -7,13 +7,20 @@ namespace lorawan {
 
 static const char *const TAG = "lorawan";
 
-void LoRaWANListener::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
-  this->parent_->packet_received(packet, rssi, snr);
-}
+class MyLoRaListener : public lora::LoRaListener {
+ public:
+  MyLoRaListener(LoRaWAN *parent) { this->parent_ = parent; }
+  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override {
+    this->parent_->packet_received(packet, rssi, snr);
+  }
+
+ protected:
+  LoRaWAN *parent_;
+};
 
 void LoRaWAN::setup() {
   Component::setup();
-  this->parent_->register_listener(new LoRaWANListener(this));
+  this->parent_->register_listener(new MyLoRaListener(this));
 }
 
 void LoRaWAN::packet_received(const std::vector<uint8_t> &packet, float rssi, float snr) {

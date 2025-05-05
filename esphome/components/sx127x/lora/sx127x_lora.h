@@ -8,7 +8,7 @@
 namespace esphome {
 namespace sx127x {
 
-class SX127xLora;
+class SX127xLoRa;
 
 class SX127xLoRaListener : public SX127xListener {
  public:
