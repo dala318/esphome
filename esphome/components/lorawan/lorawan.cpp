@@ -22,10 +22,19 @@ void LoRaWAN::setup() {
   Component::setup();
   this->parent_->register_listener(new MyLoRaListener(this));
 
-  this->session_ = std::make_unique<LoRaWANSession>();
-  //   this->joined_ = false;
-  //   this->send_join_request_();
-  //   this->join_request_time_ = millis();
+  this->dev_nonce_pref_ = global_preferences->make_preference<uint16_t>(0x03A7);
+  if (!this->dev_nonce_pref_.load(&this->dev_nonce_)) {
+    this->dev_nonce_ = 0;
+  }
+
+  this->session_ = std::make_unique<LoRaWANSession>(this->app_key_, this->dev_eui_, this->app_eui_);
+
+  this->dev_nonce_++;
+  this->dev_nonce_pref_.save(&this->dev_nonce_);
+  LoRaWANPacket packet = this->session_->prepare_join_request(dev_nonce_);
+  this->parent_->send_packet(packet.get_payload());
+  this->joined_ = false;
+  this->join_request_time_ = millis();
 }
 
 void LoRaWAN::dump_config() {
@@ -48,8 +57,7 @@ void LoRaWAN::packet_received(const std::vector<uint8_t> &packet, float rssi, fl
 
   if (lorawan_packet.is_join_accept()) {
     ESP_LOGI(TAG, "Received Join Accept");
-    // if (this->process_join_response(lorawan_packet)){
-    if (true) {
+    if (this->session_->process_join_response(lorawan_packet)) {
       joined_ = true;
       ESP_LOGI(TAG, "Join successful, session keys derived");
     } else {

@@ -1,6 +1,8 @@
 #pragma once
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
+#include "esphome/core/preferences.h"
+
 #include "esphome/components/lora/lora.h"
 
 #include "lorawan_crypto.h"
@@ -31,14 +33,12 @@ class LoRaWAN : public Component, public Parented<lora::LoRa> {
   }
 
  protected:
-  void send_join_request_();
-  bool process_join_response(const LoRaWANPacket lorawan_packet);
-
   std::array<uint8_t, 16> app_key_;
   std::array<uint8_t, 8> dev_eui_;
   std::array<uint8_t, 8> app_eui_;
 
   uint16_t dev_nonce_;
+  ESPPreferenceObject dev_nonce_pref_;
   bool joined_;
 
   std::unique_ptr<LoRaWANSession> session_;
