@@ -15,6 +15,7 @@ namespace lorawan {
 class LoRaWAN : public Component, public Parented<lora::LoRa> {
  public:
   void setup() override;
+  void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
   void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
   void packet_received(const std::vector<uint8_t> &packet, float rssi, float snr);
@@ -41,7 +42,6 @@ class LoRaWAN : public Component, public Parented<lora::LoRa> {
   bool joined_;
 
   std::unique_ptr<LoRaWANSession> session_;
-  std::shared_ptr<LoRaRadioInterface> radio_;
 
   unsigned long join_request_time_;
 
