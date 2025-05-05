@@ -37,6 +37,17 @@ void LoRaWAN::setup() {
   this->join_request_time_ = millis();
 }
 
+void LoRaWAN::loop() {
+  if (this->joined_) {
+    // Handle normal data packets later
+  } else {
+    if (millis() - this->join_request_time_ > 10000) {
+      ESP_LOGE(TAG, "Join request timed out");
+      this->joined_ = false;
+    }
+  }
+}
+
 void LoRaWAN::dump_config() {
   ESP_LOGCONFIG(TAG, "LoRaWAN:");
   ESP_LOGCONFIG(TAG, "  App Key: %s", format_hex(this->app_key_).c_str());

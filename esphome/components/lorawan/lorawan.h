@@ -7,6 +7,7 @@
 
 #include "lorawan_crypto.h"
 #include "lorawan_packet.h"
+#include "lorawan_reg.h"
 #include "lorawan_session.h"
 
 #include <vector>
@@ -17,6 +18,7 @@ namespace lorawan {
 class LoRaWAN : public Component, public Parented<lora::LoRa> {
  public:
   void setup() override;
+  void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
   void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
