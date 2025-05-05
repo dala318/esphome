@@ -48,6 +48,12 @@ CONF_RADIO_ID = "radio_id"
 _LOGGER = logging.getLogger(__name__)
 
 
+LORA_ID_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_LORA_ID): cv.use_id(LoRa),
+    }
+)
+
 # def validate_(config):
 #     if config[CONF_PREAMBLE_SIZE] > 0 and config[CONF_PREAMBLE_SIZE] < 6:
 #         raise cv.Invalid("Minimum preamble size is 6 with LORA")
@@ -68,6 +74,12 @@ LORA_SCHEMA = (
     ).extend(cv.COMPONENT_SCHEMA)
     # .add_extra(validate_)
 )
+
+
+async def register_lora_client(var, config):
+    lora_var = await cg.get_variable(config[CONF_LORA_ID])
+    cg.add(var.set_parent(lora_var))
+    return lora_var
 
 
 def lora_schema(cls):
