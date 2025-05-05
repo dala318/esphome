@@ -8,6 +8,8 @@
 namespace esphome {
 namespace lorawan {
 
+static const char *const TAG = "LoRaWAN_Packet";
+
 LoRaWANPacket::LoRaWANPacket(const std::vector<uint8_t> &payload) {
   if (payload.size() < 12) {
     // valid_ = false;
