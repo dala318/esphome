@@ -3,23 +3,23 @@
 #include "esphome/core/component.h"
 #include "esphome/components/packet_transport/packet_transport.h"
 #include <vector>
-#include "../sx127x.h"
+#include "../lora.h"
 
 namespace esphome {
-namespace sx127x {
+namespace lora {
 
-class SX127xTransport;
+class LoRaTransport;
 
-class SX127xTransportListener : public SX127xListener {
+class LoRaTransportListener : public LoRaListener {
  public:
-  SX127xTransportListener(SX127xTransport *parent);
+  LoRaTransportListener(LoRaTransport *parent);
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
 
  protected:
-  SX127xTransport *parent_;
+  LoRaTransport *parent_;
 };
 
-class SX127xTransport : public packet_transport::PacketTransport, public Parented<SX127x> {
+class LoRaTransport : public packet_transport::PacketTransport, public Parented<LoRa> {
  public:
   void setup() override;
   void update() override;
@@ -27,10 +27,10 @@ class SX127xTransport : public packet_transport::PacketTransport, public Parente
   void packet_received(const std::vector<uint8_t> &packet, float rssi, float snr);
 
  protected:
-  void send_packet(std::vector<uint8_t> &buf) const override { this->parent_->transmit_packet(buf); }
+  void send_packet(std::vector<uint8_t> &buf) const override { this->parent_->send_packet(buf); }
   bool should_send() override { return true; };
   size_t get_max_packet_size() override { return 255u; }
 };
 
-}  // namespace sx127x
+}  // namespace lora
 }  // namespace esphome
