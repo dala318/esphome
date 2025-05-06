@@ -7,20 +7,8 @@ namespace lorawan {
 
 static const char *const TAG = "lorawan";
 
-class MyLoRaListener : public lora::LoRaListener {
- public:
-  MyLoRaListener(LoRaWAN *parent) { this->parent_ = parent; }
-  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override {
-    this->parent_->packet_received(packet, rssi, snr);
-  }
-
- protected:
-  LoRaWAN *parent_;
-};
-
 void LoRaWAN::setup() {
   Component::setup();
-  this->parent_->register_listener(new MyLoRaListener(this));
 
   this->dev_nonce_pref_ = global_preferences->make_preference<uint16_t>(0x03A7);
   if (!this->dev_nonce_pref_.load(&this->dev_nonce_)) {
@@ -57,7 +45,7 @@ void LoRaWAN::dump_config() {
   // Component::dump_config();
 }
 
-void LoRaWAN::packet_received(const std::vector<uint8_t> &packet, float rssi, float snr) {
+void LoRaWAN::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
   ESP_LOGD(TAG, "packet %s", format_hex(packet).c_str());
   ESP_LOGD(TAG, "rssi %.2f", rssi);
   ESP_LOGD(TAG, "snr %.2f", snr);
