@@ -30,6 +30,7 @@ CONF_RX_START = "rx_start"
 CONF_RF_SWITCH = "rf_switch"
 CONF_SHAPING = "shaping"
 CONF_SPREADING_FACTOR = "spreading_factor"
+CONF_SX126X_ID = "sx126x_id"
 CONF_SYNC_VALUE = "sync_value"
 CONF_TCXO_VOLTAGE = "tcxo_voltage"
 CONF_TCXO_DELAY = "tcxo_delay"
@@ -43,6 +44,12 @@ SX126xTcxoCtrl = sx126x_ns.enum("SX126xTcxoCtrl")
 SX126xRampTime = sx126x_ns.enum("SX126xRampTime")
 SX126xPulseShape = sx126x_ns.enum("SX126xPulseShape")
 SX126xLoraCr = sx126x_ns.enum("SX126xLoraCr")
+
+SX126X_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_SX126X_ID): cv.use_id(SX126x),
+    }
+)
 
 BW = {
     "4_8kHz": SX126xBw.SX126X_BW_4800,
@@ -130,6 +137,9 @@ SetModeRxAction = sx126x_ns.class_("SetModeRxAction", automation.Action)
 SetModeSleepAction = sx126x_ns.class_("SetModeSleepAction", automation.Action)
 SetModeStandbyAction = sx126x_ns.class_("SetModeStandbyAction", automation.Action)
 
+# Work-around to ensure that the sx127x component is set in modulation LORA when used in LoRa Component
+sx126x_modes = {}
+
 
 def validate_raw_data(value):
     if isinstance(value, str):
@@ -144,6 +154,7 @@ def validate_raw_data(value):
 
 
 def validate_config(config):
+    sx126x_modes[str(config[CONF_ID])] = config[CONF_MODULATION]
     lora_bws = [
         "7_8kHz",
         "10_4kHz",
@@ -214,6 +225,12 @@ CONFIG_SCHEMA = cv.All(
     .extend(spi.spi_device_schema(True, 8e6, "mode0")),
     validate_config,
 )
+
+
+async def register_sx126x_client(var, config):
+    sx126x_var = await cg.get_variable(config[CONF_SX126X_ID])
+    cg.add(var.set_parent(sx126x_var))
+    return sx126x_var
 
 
 async def to_code(config):
