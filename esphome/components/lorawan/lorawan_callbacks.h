@@ -13,6 +13,8 @@ struct LoRaWANCallbacks {
   // std::function<void(const std::vector<uint8_t>& data)> on_tx_complete;
   std::function<void(bool acked)> on_tx_complete;
   std::function<uint32_t()> get_millis;
+  std::function<void()> on_join_success;
+  std::function<void()> on_join_failure;
 };
 
 /*

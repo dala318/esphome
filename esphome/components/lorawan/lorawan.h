@@ -11,16 +11,20 @@
 namespace esphome {
 namespace lorawan {
 
+class LoRaWANListener {
+ public:
+  virtual void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr);
+};
+
 class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListener {
  public:
+  // EspHome default functions
   void setup() override;
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
-  void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
-  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
-
+  // Config setter functions
   void set_dev_eui(const std::vector<uint8_t> &dev_eui) {
     std::copy(dev_eui.begin(), dev_eui.end(), this->dev_eui_.begin());
   }
@@ -30,6 +34,14 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   void set_app_key(const std::vector<uint8_t> &app_key) {
     std::copy(app_key.begin(), app_key.end(), this->app_key_.begin());
   }
+
+  // Operational functions
+  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
+  void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
+
+  // Listener functions
+  void register_listener(LoRaWANListener *listener) { this->listeners_.push_back(listener); }
+  Trigger<std::vector<uint8_t>, float, float> *get_packet_trigger() const { return this->packet_trigger_; };
 
  protected:
   std::array<uint8_t, 16> app_key_;
@@ -41,9 +53,9 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
 
   bool joined_;
 
-  // void call_listeners_(const std::vector<uint8_t> &packet, float rssi, float snr);
-  // std::vector<LoRaListener *> listeners_;
-  // Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{new Trigger<std::vector<uint8_t>, float, float>()};
+  std::vector<LoRaWANListener *> listeners_;
+  void call_listeners_(const std::vector<uint8_t> &packet, float rssi, float snr);
+  Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{new Trigger<std::vector<uint8_t>, float, float>()};
 };
 
 }  // namespace lorawan

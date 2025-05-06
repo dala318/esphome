@@ -14,9 +14,9 @@
 namespace esphome {
 namespace lorawan {
 
-class LoRaWANMac : public LoRaListener {
+class LoRaWANMac : public lora::LoRaListener {
  public:
-  LoRaWANMac(LoRa *radio, const LoRaWANCallbacks &cb, LoRaWANRegion region = LoRaWANRegion::EU868);
+  LoRaWANMac(lora::LoRa *radio, const LoRaWANCallbacks &cb, LoRaWANRegion region);
 
   void join_otaa(const std::array<uint8_t, 8> &dev_eui, const std::array<uint8_t, 8> &app_eui,
                  const std::array<uint8_t, 16> &app_key);
@@ -38,7 +38,7 @@ class LoRaWANMac : public LoRaListener {
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
 
  private:
-  LoRa *radio_;
+  lora::LoRa *radio_;
   LoRaWANCallbacks callbacks_;
   LoRaWANSession session_;
   LoRaWANRegion region_;
