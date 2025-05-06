@@ -1,3 +1,5 @@
+#include "esphome/core/log.h"
+
 #include "lorawan.h"
 #include "lorawan_callbacks.h"
 #include "lorawan_mac.h"
@@ -8,21 +10,32 @@ namespace lorawan {
 static const char *const TAG = "lorawan";
 
 void LoRaWAN::setup() {
-  // LoRaImpl radio; // your radio class
+  Component::setup();
 
-  LoRaWANCallbacks callbacks = {.on_receive = on_lorawan_data,  // your data handler
-                                .send = [&](const std::vector<uint8_t> &data) { this->parent_->send_packet(data); },
-                                .get_millis = millis,
-                                .on_join_success = on_join_success,
-                                .on_join_failure = on_join_failure};
+  LoRaWANCallbacks callbacks = {
+      .on_receive = [&](const std::vector<uint8_t> &data, float rssi,
+                        float snr) { this->call_listeners_(data, rssi, snr); },  // your data handler
+      .send = [&](const std::vector<uint8_t> &data) { this->parent_->send_packet(data); },
+      .on_tx_complete =
+          [&](bool acked) {
+            if (acked) {
+              ESP_LOGI(TAG, "Confirmed uplink acknowledged by network");
+            } else {
+              ESP_LOGI(TAG, "Unconfirmed or no ACK received");
+            }
+          },
+      .get_millis = millis,
+      .on_join_success = [&] { ESP_LOGI(TAG, "Join success"); },
+      .on_join_failure = [&] { ESP_LOGE(TAG, "Join failed"); }};
 
-  LoRaWANMac lorawan(this->parent_, callbacks);
+  LoRaWANMac lorawan(this->parent_, callbacks, LoRaWANRegion::EU868);  // ToDo: Add region config
 
   // Somewhere in your setup
   std::array<uint8_t, 8> deveui = {/* your DevEUI */};
   std::array<uint8_t, 8> appeui = {/* your AppEUI */};
   std::array<uint8_t, 16> appkey = {/* your AppKey */};
 
+  // TODO: Check if this function or the other which see mto be very similar should be used
   lorawan.join_otaa(deveui, appeui, appkey);
 }
 
