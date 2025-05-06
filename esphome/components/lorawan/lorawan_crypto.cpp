@@ -1,98 +1,81 @@
-#include "esphome/core/log.h"
-#include "mbedtls/cmac.h"
-
 #include "lorawan_crypto.h"
+#include "mbedtls/aes.h"
 
 #include <cstring>
 
 namespace esphome {
 namespace lorawan {
 
-static const char *const TAG = "LoRaWAN_Crypo";
-
-// Calculate MIC using AES-CMAC
-void LoRaWANCrypto::calculate_mic(const std::vector<uint8_t> &packet, const std::array<uint8_t, 16> &key,
-                                  uint8_t *mic_out) {
-  const mbedtls_cipher_info_t *cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
-  if (cipher_info == nullptr) {
-    ESP_LOGE(TAG, "Failed to get AES cipher info");
-    return;
-  }
-
-  unsigned char *mic_out_local;
-  //   int err = mbedtls_cipher_cmac(cipher_info, key.data(), 128,
-  //                                 packet.data(), packet.size(), mic_out);
-  int err = mbedtls_cipher_cmac(cipher_info, key.data(), 128, packet.data(), packet.size(), mic_out_local);
-  mic_out = mic_out_local;
-  if (err != 0) {
-    ESP_LOGE(TAG, "CMAC calculation failed: -0x%04X", -err);
-  }
+// AES-128 ECB block encryption
+void aes128_encrypt_block(const uint8_t *key, const uint8_t *input, uint8_t *output) {
+  mbedtls_aes_context ctx;
+  mbedtls_aes_init(&ctx);
+  mbedtls_aes_setkey_enc(&ctx, key, 128);
+  mbedtls_aes_crypt_ecb(&ctx, MBEDTLS_AES_ENCRYPT, input, output);
+  mbedtls_aes_free(&ctx);
 }
 
-// Decrypt Join Accept message using AES
-void LoRaWANCrypto::decrypt_join_accept(const std::vector<uint8_t> &encrypted, std::vector<uint8_t> &decrypted,
-                                        const std::array<uint8_t, 16> &key) {
-  decrypted.resize(encrypted.size());
-  aes_crypt(encrypted.data(), decrypted.data(), key, false);
-}
-
-// Derive session keys from Join Accept response
-void LoRaWANCrypto::derive_session_keys(const std::vector<uint8_t> &decrypted, const std::array<uint8_t, 16> &key,
-                                        std::array<uint8_t, 16> &nwk_skey, std::array<uint8_t, 16> &app_skey) {
-  // 1. Derive NwkSKey (AES key with key type 0x01)
-  std::array<uint8_t, 16> nonce_data{};
-  nonce_data[0] = 0x01;                                                             // key type for NwkSKey
-  std::copy(decrypted.begin() + 1, decrypted.begin() + 4, nonce_data.begin() + 1);  // AppNonce
-  std::copy(decrypted.begin() + 4, decrypted.begin() + 7, nonce_data.begin() + 4);  // NetID
-  nonce_data[7] = decrypted[9];                                                     // DevNonce LSB
-  nonce_data[8] = decrypted[10];                                                    // DevNonce MSB
-
-  aes_crypt(nonce_data.data(), nwk_skey.data(), key, true);
-
-  // 2. Derive AppSKey (AES key with key type 0x02)
-  nonce_data[0] = 0x02;  // key type for AppSKey
-  aes_crypt(nonce_data.data(), app_skey.data(), key, true);
-}
-
-// Encrypt application payload
-void LoRaWANCrypto::encrypt_app(const std::vector<uint8_t> &data, const std::array<uint8_t, 16> &key,
-                                std::vector<uint8_t> &encrypted) {
-  encrypted.resize(data.size());
-  aes_crypt(data.data(), encrypted.data(), key, true);
-}
-
-// Decrypt application payload
-void LoRaWANCrypto::decrypt_app(const std::vector<uint8_t> &encrypted, const std::array<uint8_t, 16> &key,
-                                std::vector<uint8_t> &decrypted) {
-  decrypted.resize(encrypted.size());
-  aes_crypt(encrypted.data(), decrypted.data(), key, false);
-}
-
-// Encrypt network payload
-void LoRaWANCrypto::encrypt_ntw(const std::vector<uint8_t> &data, const std::array<uint8_t, 16> &key,
-                                std::vector<uint8_t> &encrypted) {
-  encrypted.resize(data.size());
-  aes_crypt(data.data(), encrypted.data(), key, true);
-}
-
-// Decrypt network payload
-void LoRaWANCrypto::decrypt_ntw(const std::vector<uint8_t> &encrypted, const std::array<uint8_t, 16> &key,
-                                std::vector<uint8_t> &decrypted) {
-  decrypted.resize(encrypted.size());
-  aes_crypt(encrypted.data(), decrypted.data(), key, false);
-}
-
-// Helper function for AES encryption/decryption (ECB mode)
-void LoRaWANCrypto::aes_crypt(const uint8_t *input, uint8_t *output, const std::array<uint8_t, 16> &key, bool encrypt) {
-  mbedtls_aes_context aes;
-  mbedtls_aes_init(&aes);
-  mbedtls_aes_setkey_enc(&aes, key.data(), 128);  // Use encryption key for both encryption and decryption (ECB mode)
-  if (encrypt) {
-    mbedtls_aes_crypt_ecb(&aes, ESP_AES_ENCRYPT, input, output);
+// B0 block used for MIC
+void generate_b0(std::vector<uint8_t> &b0, uint32_t devaddr, uint32_t fcnt, size_t len, bool join_frame) {
+  b0.resize(16, 0);
+  b0[0] = 0x49;
+  if (!join_frame) {
+    b0[5] = 0x00;
+    b0[6] = (uint8_t) (devaddr & 0xFF);
+    b0[7] = (uint8_t) ((devaddr >> 8) & 0xFF);
+    b0[8] = (uint8_t) ((devaddr >> 16) & 0xFF);
+    b0[9] = (uint8_t) ((devaddr >> 24) & 0xFF);
+    b0[10] = (uint8_t) (fcnt & 0xFF);
+    b0[11] = (uint8_t) ((fcnt >> 8) & 0xFF);
+    b0[15] = static_cast<uint8_t>(len);
   } else {
-    mbedtls_aes_crypt_ecb(&aes, ESP_AES_DECRYPT, input, output);
+    b0[15] = static_cast<uint8_t>(len);
   }
-  mbedtls_aes_free(&aes);
+}
+
+// MIC = AES-CMAC(K, B0 | msg)
+uint32_t calculate_mic(const uint8_t *key, const std::vector<uint8_t> &msg, uint32_t devaddr, uint32_t fcnt,
+                       bool join_frame) {
+  std::vector<uint8_t> b0;
+  generate_b0(b0, devaddr, fcnt, msg.size(), join_frame);
+
+  std::vector<uint8_t> mic_input = b0;
+  mic_input.insert(mic_input.end(), msg.begin(), msg.end());
+
+  // LoRaWAN CMAC spec: AES-CMAC with K and mic_input
+  uint8_t X[16] = {0};
+  uint8_t Y[16] = {0};
+
+  for (size_t i = 0; i < mic_input.size(); i += 16) {
+    uint8_t block[16] = {0};
+    size_t len = std::min<size_t>(16, mic_input.size() - i);
+    std::copy(mic_input.begin() + i, mic_input.begin() + i + len, block);
+    for (int j = 0; j < 16; ++j)
+      block[j] ^= X[j];
+    aes128_encrypt_block(key, block, Y);
+    std::copy(Y, Y + 16, X);
+  }
+
+  return ((uint32_t) X[0]) | ((uint32_t) X[1] << 8) | ((uint32_t) X[2] << 16) | ((uint32_t) X[3] << 24);
+}
+
+void derive_session_keys_v10(const std::array<uint8_t, 16> &appkey, const std::array<uint8_t, 3> &appnonce,
+                             const std::array<uint8_t, 3> &netid, const std::array<uint8_t, 2> &devnonce,
+                             std::array<uint8_t, 16> &nwkskey, std::array<uint8_t, 16> &appskey) {
+  uint8_t nonce_buf[16] = {0};
+
+  // NwkSKey
+  nonce_buf[0] = 0x01;
+  memcpy(nonce_buf + 1, appnonce.data(), 3);
+  memcpy(nonce_buf + 4, netid.data(), 3);
+  memcpy(nonce_buf + 7, devnonce.data(), 2);
+  // Remaining bytes 9-15 are already 0
+
+  aes128_encrypt(appkey.data(), nonce_buf, nwkskey.data());
+
+  // AppSKey
+  nonce_buf[0] = 0x02;
+  aes128_encrypt(appkey.data(), nonce_buf, appskey.data());
 }
 
 }  // namespace lorawan
