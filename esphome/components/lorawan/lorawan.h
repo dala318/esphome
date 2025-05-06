@@ -15,14 +15,14 @@
 namespace esphome {
 namespace lorawan {
 
-class LoRaWAN : public Component, public Parented<lora::LoRa> {
+class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListener {
  public:
   void setup() override;
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
   void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
-  void packet_received(const std::vector<uint8_t> &packet, float rssi, float snr);
+  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
 
   void set_app_key(const std::vector<uint8_t> &app_key) {
     std::copy(app_key.begin(), app_key.end(), this->app_key_.begin());
