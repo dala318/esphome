@@ -43,6 +43,7 @@ CONFIG_SCHEMA = (
     )
     .extend(cv.COMPONENT_SCHEMA)
     .extend(LORA_SCHEMA)
+    .add_extra(cv.only_on_esp32)
 )
 
 

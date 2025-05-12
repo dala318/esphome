@@ -16,7 +16,7 @@ class LoRaWANListener {
   virtual void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr);
 };
 
-class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListener {
+class LoRaWAN : public Component, public Parented<lora::LoRa> {
  public:
   // EspHome default functions
   void setup() override;
@@ -36,7 +36,6 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   }
 
   // Operational functions
-  void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
   void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
 
   // Listener functions

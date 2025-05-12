@@ -20,7 +20,7 @@ uint32_t lorawan_mic(const uint8_t *key, const std::vector<uint8_t> &msg, uint32
 }
 
 // --- Constructor ---
-LoRaWANMac::LoRaWANMac(LoRa *radio, const LoRaWANCallbacks &cb, LoRaWANRegion region)
+LoRaWANMac::LoRaWANMac(lora::LoRa *radio, const LoRaWANCallbacks &cb, LoRaWANRegion region)
     : radio_(radio), callbacks_(cb), region_(region) {
   radio_->register_listener(this);
 }
@@ -33,8 +33,7 @@ void LoRaWANMac::join_otaa(const std::array<uint8_t, 8> &dev_eui, const std::arr
   session_.appkey = app_key;
 
   // Generate DevNonce
-  uint16_t nonce = get_random_nonce();  // Provide from platform
-  session_.devnonce = {uint8_t(nonce & 0xFF), uint8_t((nonce >> 8) & 0xFF)};
+  session_.devnonce = next_devnonce();  // Provide from platform
 
   std::vector<uint8_t> payload(23);
 
@@ -49,22 +48,24 @@ void LoRaWANMac::join_otaa(const std::array<uint8_t, 8> &dev_eui, const std::arr
     payload[9 + i] = dev_eui[7 - i];
 
   // DevNonce
-  payload[17] = session_.devnonce[0];
-  payload[18] = session_.devnonce[1];
+  payload[17] = uint8_t(session_.devnonce & 0xFF);
+  payload[18] = uint8_t(session_.devnonce >> 8 & 0xFF);
 
   // MIC
-  uint32_t mic = calculate_join_mic(payload.data(), 19, app_key.data());
+  // uint32_t mic = calculate_join_mic(payload.data(), 19, app_key.data());
+  uint32_t mic = lorawan_mic(session_.nwkskey.data(), payload, *(uint32_t *) session_.devaddr.data(),
+                             session_.uplink_counter, false);
   payload[19] = mic & 0xFF;
   payload[20] = (mic >> 8) & 0xFF;
   payload[21] = (mic >> 16) & 0xFF;
   payload[22] = (mic >> 24) & 0xFF;
 
   // Send packet
-  radio_.send_packet(payload);
+  radio_->send_packet(payload);
 
   // Save state
-  state_ = JoinPending;
-  join_request_time_ = callbacks_.get_millis();
+  state_ = LoRaWANState::JOINING;
+  last_tx_time_ = callbacks_.get_millis();
 }
 
 // --- OTAA Join ---
@@ -81,7 +82,7 @@ void LoRaWANMac::begin_otaa(const std::array<uint8_t, 8> &deveui, const std::arr
   std::vector<uint8_t> join_request;
   build_join_request(join_request);
 
-  radio_->set_frequency(lorawan_reg::EU868_JOIN_FREQ);
+  radio_->set_frequency(EU868_JOIN_FREQ);
   radio_->send_packet(join_request);
   last_tx_time_ = callbacks_.get_millis();
   schedule_rx_windows();
@@ -98,51 +99,6 @@ void LoRaWANMac::begin_abp(const std::array<uint8_t, 4> &devaddr, const std::arr
   state_ = LoRaWANState::ABP_ACTIVE;
 }
 
-// --- Send Uplink ---
-bool LoRaWANMac::send_uplink(const std::vector<uint8_t> &data, uint8_t port) {
-  if (state_ != LoRaWANState::JOINED && state_ != LoRaWANState::ABP_ACTIVE)
-    return false;
-
-  std::vector<uint8_t> packet;
-
-  // MHDR
-  packet.push_back(0x40);  // Unconfirmed Data Up
-
-  // DevAddr
-  for (auto it = session_.devaddr.rbegin(); it != session_.devaddr.rend(); ++it)
-    packet.push_back(*it);
-
-  // FCtrl
-  packet.push_back(0x00);
-
-  // FCnt
-  uint16_t fcnt = session_.uplink_counter & 0xFFFF;
-  packet.push_back(fcnt & 0xFF);
-  packet.push_back((fcnt >> 8) & 0xFF);
-
-  // No FOpts
-  // FPort
-  packet.push_back(port);
-
-  // Encrypted Payload
-  std::vector<uint8_t> payload = data;
-  encrypt_payload(payload, false);
-  packet.insert(packet.end(), payload.begin(), payload.end());
-
-  // MIC
-  uint32_t mic = lorawan_mic(session_.nwkskey.data(), packet, *reinterpret_cast<uint32_t *>(session_.devaddr.data()),
-                             session_.uplink_counter, false);
-  for (int i = 0; i < 4; ++i)
-    packet.push_back((mic >> (i * 8)) & 0xFF);
-
-  radio_->set_frequency(lorawan_reg::EU868_DEFAULT_CHANNELS[0]);
-  radio_->send_packet(packet);
-  last_tx_time_ = callbacks_.get_millis();
-  session_.uplink_counter++;
-  schedule_rx_windows();
-  return true;
-}
-
 // --- Receive Packet Hook ---
 void LoRaWANMac::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
   if (packet.empty())
@@ -150,18 +106,19 @@ void LoRaWANMac::on_packet(const std::vector<uint8_t> &packet, float rssi, float
 
   uint8_t mtype = packet[0] >> 5;
 
-  if (state_ == JoinPending && mtype == 0x01 /* JoinAccept */) {
+  if (state_ == LoRaWANState::JOINING && mtype == 0x01 /* JoinAccept */) {
     if (parse_join_accept(packet)) {
-      state_ = Joined;
+      state_ = LoRaWANState::JOINED;
       callbacks_.on_join_success();
     } else {
+      state_ = LoRaWANState::IDLE;
       callbacks_.on_join_failure();
     }
     return;
   }
 
   // Normal data downlink
-  if (state_ == Joined && (mtype == 0x03 || mtype == 0x05)) {
+  if (state_ == LoRaWANState::JOINED && (mtype == 0x03 || mtype == 0x05)) {
     process_rx(packet, rssi, snr);
   }
 }
@@ -184,14 +141,17 @@ void LoRaWANMac::build_join_request(std::vector<uint8_t> &out) {
   out.push_back((session_.devnonce >> 8) & 0xFF);
 
   // MIC
-  uint32_t mic = lorawan_mic(session_.appkey.data(), out, 0, 0, true);
+  // uint32_t mic = lorawan_mic(session_.appkey.data(), out, 0, 0, true);
+  uint32_t mic =
+      lorawan_mic(session_.nwkskey.data(), out, *(uint32_t *) session_.devaddr.data(), session_.uplink_counter, false);
+  out[19] = mic & 0xFF;
   for (int i = 0; i < 4; ++i)
     out.push_back((mic >> (i * 8)) & 0xFF);
 }
 
 // --- RX Timing Logic ---
 void LoRaWANMac::schedule_rx_windows() {
-  rx1_time_ = last_tx_time_ + lorawan_reg::EU868_RX1_DELAY;
+  rx1_time_ = last_tx_time_ + EU868_RX1_DELAY;
   rx2_time_ = rx1_time_ + 1000;
   awaiting_rx_ = true;
 }
@@ -200,9 +160,9 @@ void LoRaWANMac::loop() {
   uint32_t now = callbacks_.get_millis();
   if (awaiting_rx_) {
     if (now >= rx1_time_ && now < rx1_time_ + 100) {
-      radio_->set_frequency(lorawan_reg::EU868_DEFAULT_CHANNELS[0]);
+      radio_->set_frequency(EU868_DEFAULT_CHANNELS[0]);
     } else if (now >= rx2_time_ && now < rx2_time_ + 100) {
-      radio_->set_frequency(lorawan_reg::EU868_RX2_FREQ);
+      radio_->set_frequency(EU868_RX2_FREQ);
     } else if (now > rx2_time_ + 200) {
       awaiting_rx_ = false;  // Timeout
     }
@@ -211,11 +171,12 @@ void LoRaWANMac::loop() {
 
 // --- Process Join Accept / Downlink (Simplified) ---
 void LoRaWANMac::process_rx(const std::vector<uint8_t> &packet, float rssi, float snr) {
-  if (state_ == LoRaWANState::JOINING && (packet[0] & 0xE0) == 0x20) {
-    parse_join_accept(packet);
-    callbacks_.on_tx_complete({});
-    return;
-  }
+  // Seem to be no need here as this is only called after a successful join
+  // if (state_ == LoRaWANState::JOINING && (packet[0] & 0xE0) == 0x20) {
+  //   parse_join_accept(packet);
+  //   callbacks_.on_tx_complete({});
+  //   return;
+  // }
 
   if (packet.size() < 13)
     return;  // Minimum size
@@ -300,7 +261,7 @@ bool LoRaWANMac::send_uplink(const std::vector<uint8_t> &data, uint8_t port, boo
     packet.push_back((mic >> (i * 8)) & 0xFF);
 
   // TX
-  radio_->set_frequency(lorawan_reg::EU868_DEFAULT_CHANNELS[0]);
+  radio_->set_frequency(EU868_DEFAULT_CHANNELS[0]);
   radio_->send_packet(packet);
   last_tx_time_ = callbacks_.get_millis();
   session_.uplink_counter++;
@@ -308,7 +269,7 @@ bool LoRaWANMac::send_uplink(const std::vector<uint8_t> &data, uint8_t port, boo
   return true;
 }
 
-void LoRaWANMac::parse_join_accept(const std::vector<uint8_t> &packet) {
+bool LoRaWANMac::parse_join_accept(const std::vector<uint8_t> &packet) {
   std::vector<uint8_t> decrypted(packet.begin() + 1, packet.end() - 4);
   lorawan_aes_encrypt(session_.appkey.data(), decrypted.data(), decrypted.data());
 
@@ -317,11 +278,15 @@ void LoRaWANMac::parse_join_accept(const std::vector<uint8_t> &packet) {
 
   // Keys are usually derived via AES with AppNonce, NetID, DevNonce — omitted here
   // Assume prefilled externally or mocked
-  derive_session_keys_v10(session_.appkey, session_.appnonce, session_.netid, session_.devnonce, session_.nwkskey,
-                          session_.appskey);
+  // std::array<uint8_t, 2> devnonce = {uint8_t(session_.devnonce & 0xFF), uint8_t(session_.devnonce >> 8 & 0xFF)};
+  derive_session_keys_v10(session_);
+  // derive_session_keys_v10(session_.appkey, session_.appnonce, session_.netid, devnonce, session_.nwkskey,
+  //                         session_.appskey);
 
   session_.otaa_joined = true;
   state_ = LoRaWANState::JOINED;
+
+  return true;
 }
 
 // --- Utilities ---

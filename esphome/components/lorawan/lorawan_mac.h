@@ -29,7 +29,7 @@ class LoRaWANMac : public lora::LoRaListener {
                  const std::array<uint8_t, 16> &appskey);
 
   // Send uplink packet
-  bool send_uplink(const std::vector<uint8_t> &data, uint8_t port = 1);
+  bool send_uplink(const std::vector<uint8_t> &data, uint8_t port = 1, bool confirmed = false);
 
   // Main loop must be called periodically (~every 50ms)
   void loop();
@@ -53,7 +53,7 @@ class LoRaWANMac : public lora::LoRaListener {
   void schedule_rx_windows();
   void process_rx(const std::vector<uint8_t> &packet, float rssi, float snr);
   void build_join_request(std::vector<uint8_t> &out);
-  void parse_join_accept(const std::vector<uint8_t> &packet);
+  bool parse_join_accept(const std::vector<uint8_t> &packet);
 
   uint16_t next_devnonce();
   void encrypt_payload(std::vector<uint8_t> &data, bool downlink);

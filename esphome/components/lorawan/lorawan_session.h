@@ -19,6 +19,10 @@ struct LoRaWANSession {
   uint32_t downlink_counter = 0;
   uint16_t devnonce = 0;
 
+  // Unsure if these are needed, derived from the original derive_session_keys_v10 arguments
+  std::array<uint8_t, 3> appnonce;
+  std::array<uint8_t, 3> netid;
+
   bool otaa_joined = false;
   bool abp_mode = false;
 };

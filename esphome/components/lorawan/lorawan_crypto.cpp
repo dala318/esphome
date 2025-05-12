@@ -1,5 +1,7 @@
 #include "lorawan_crypto.h"
-#include "mbedtls/aes.h"
+// #include "mbedtls/aes.h"
+#define MBEDTLS_AES_ALT
+#include <aes_alt.h>
 
 #include <cstring>
 
@@ -11,7 +13,8 @@ void aes128_encrypt_block(const uint8_t *key, const uint8_t *input, uint8_t *out
   mbedtls_aes_context ctx;
   mbedtls_aes_init(&ctx);
   mbedtls_aes_setkey_enc(&ctx, key, 128);
-  mbedtls_aes_crypt_ecb(&ctx, MBEDTLS_AES_ENCRYPT, input, output);
+  // mbedtls_aes_crypt_ecb(&ctx, MBEDTLS_AES_ENCRYPT, input, output);
+  mbedtls_aes_crypt_ecb(&ctx, ESP_AES_ENCRYPT, input, output);
   mbedtls_aes_free(&ctx);
 }
 
@@ -59,6 +62,11 @@ uint32_t calculate_mic(const uint8_t *key, const std::vector<uint8_t> &msg, uint
   return ((uint32_t) X[0]) | ((uint32_t) X[1] << 8) | ((uint32_t) X[2] << 16) | ((uint32_t) X[3] << 24);
 }
 
+void derive_session_keys_v10(LoRaWANSession session) {
+  std::array<uint8_t, 2> devnonce = {uint8_t(session.devnonce & 0xFF), uint8_t(session.devnonce >> 8 & 0xFF)};
+  derive_session_keys_v10(session.appkey, session.appnonce, session.netid, devnonce, session.nwkskey, session.appskey);
+}
+
 void derive_session_keys_v10(const std::array<uint8_t, 16> &appkey, const std::array<uint8_t, 3> &appnonce,
                              const std::array<uint8_t, 3> &netid, const std::array<uint8_t, 2> &devnonce,
                              std::array<uint8_t, 16> &nwkskey, std::array<uint8_t, 16> &appskey) {
@@ -71,11 +79,13 @@ void derive_session_keys_v10(const std::array<uint8_t, 16> &appkey, const std::a
   memcpy(nonce_buf + 7, devnonce.data(), 2);
   // Remaining bytes 9-15 are already 0
 
-  aes128_encrypt(appkey.data(), nonce_buf, nwkskey.data());
+  // aes128_encrypt(appkey.data(), nonce_buf, nwkskey.data());
+  aes128_encrypt_block(appkey.data(), nonce_buf, nwkskey.data());
 
   // AppSKey
   nonce_buf[0] = 0x02;
-  aes128_encrypt(appkey.data(), nonce_buf, appskey.data());
+  // aes128_encrypt(appkey.data(), nonce_buf, appskey.data());
+  aes128_encrypt_block(appkey.data(), nonce_buf, appskey.data());
 }
 
 }  // namespace lorawan

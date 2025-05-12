@@ -1,3 +1,4 @@
+#include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 
 #include "lorawan.h"
@@ -37,6 +38,27 @@ void LoRaWAN::setup() {
 
   // TODO: Check if this function or the other which see mto be very similar should be used
   lorawan.join_otaa(deveui, appeui, appkey);
+}
+
+void LoRaWAN::loop() {
+  // ToDo: Handle timing and other events
+}
+
+void LoRaWAN::dump_config() {
+  ESP_LOGCONFIG(TAG, "LoRaWAN:");
+  ESP_LOGCONFIG(TAG, "  DevEUI: %u", this->dev_eui_);
+  ESP_LOGCONFIG(TAG, "  AppEUI: %u", this->app_eui_);
+  ESP_LOGCONFIG(TAG, "  AppKey: %u", this->app_key_);
+  // ESP_LOGCONFIG(TAG, "  Radio: %s", this->parent_->get_name().c_str());
+  // ESP_LOGCONFIG(TAG, "  Encrypted: %s", YESNO(this->is_encrypted_()));
+  Component::dump_config();
+}
+
+void LoRaWAN::call_listeners_(const std::vector<uint8_t> &packet, float rssi, float snr) {
+  for (auto &listener : this->listeners_) {
+    listener->on_packet(packet, rssi, snr);
+  }
+  this->packet_trigger_->trigger(packet, rssi, snr);
 }
 
 }  // namespace lorawan
