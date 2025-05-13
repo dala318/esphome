@@ -51,19 +51,24 @@ async def to_code(config):
     cg.add_library(
         "SWL2001",
         None,
-        "https://github.com/dala318/SWL2001#0691733a997b89c339ea8b88773420c4126261a9",
+        "https://github.com/dala318/SWL2001#d254d39ed39380b0022961f58bfc541749be7853",
     )
-    # From SWL2001 lbm_lib/smtc_modem_core/lr1mac/src/smtc_real/src/smtc_real_defs.h
-    # Either RP2_101 or RP2_103 must be defined
-    cg.add_build_flag("-DRP2_101")
-    # lbm_lib/smtc_modem_core/lr1mac/src/lr1_stack_mac_layer.h
+    # smtc_modem_core/radio_planner/src/radio_planner_hook_id_defs.h
     cg.add_build_flag("-DNUMBER_OF_STACKS=1")
+
+    # From SWL2001 lbm_lib/smtc_modem_core/lr1mac/src/smtc_real/src/smtc_real_defs.h
+    # "RP_VERSION (LoRaWAN Regional Parameter version) must be defined: RP2_101 or RP2_103"
+    cg.add_build_flag("-DRP2_101")
+    # Likely also one of the following should be defined for some of the reginal settings
+    # REGION_EU_868, REGION_AS_923, REGION_US_915, REGION_AU_915, REGION_WW2G4, REGION_CN_470,
+    # REGION_IN_865, REGION_KR_920, REGION_RU_864, REGION_CN_470_RP_1_0
+
     # lbm_lib/smtc_modem_core/geolocation_services/mw_gnss_almanac.c
     # lbm_lib/smtc_modem_core/radio_planner/src/radio_planner_hook_id_defs.h
     # cg.add_build_flag("-DRP_HOOK_ID_REDEFINE")  # Can't use...
 
     # Temporary defines for getting forward for now
-    cg.add_build_flag("-DSX127X")
+    # cg.add_build_flag("-DSX127X")
 
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
