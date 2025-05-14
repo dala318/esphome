@@ -51,8 +51,9 @@ async def to_code(config):
         "SWL2001",
         None,
         # "https://github.com/dala318/SWL2001#libraty",  # Better, but don't force update check on every build
-        # "https://github.com/dala318/SWL2001#afb8974a883d4415cd3d7fdd57c146433eb8d2f7",
-        "https://github.com/dala318/SWL2001#69ae582225c7dc795c2f46f30c074926caf0b61a",
+        # "https://github.com/dala318/SWL2001#afb8974a883d4415cd3d7fdd57c146433eb8d2f7",  # Without transparent
+        # "https://github.com/dala318/SWL2001#69ae582225c7dc795c2f46f30c074926caf0b61a",  # Before adding scrFilters
+        "https://github.com/dala318/SWL2001#b70d59783f74e4c814cca5edf86209c912e8bd1d",
     )
     cg.add_build_flag("-DTRANSPARENT_RADIO")
 
@@ -62,16 +63,38 @@ async def to_code(config):
     # smtc_modem_core/lr1mac/src/smtc_real/src/smtc_real_defs.h
     # "RP_VERSION (LoRaWAN Regional Parameter version) must be defined: RP2_101 or RP2_103"
     cg.add_build_flag("-DRP2_101")
-    # Likely also one of the following should be defined for some of the reginal settings
-    # REGION_EU_868, REGION_AS_923, REGION_US_915, REGION_AU_915, REGION_WW2G4, REGION_CN_470,
-    # REGION_IN_865, REGION_KR_920, REGION_RU_864, REGION_CN_470_RP_1_0
 
-    # lbm_lib/smtc_modem_core/geolocation_services/mw_gnss_almanac.c
-    # lbm_lib/smtc_modem_core/radio_planner/src/radio_planner_hook_id_defs.h
-    # cg.add_build_flag("-DRP_HOOK_ID_REDEFINE")  # Can't use...
-
-    # Temporary defines for getting forward for now
-    # cg.add_build_flag("-DSX127X")
+    """
+    $(call echo_help, " * MODEM_APP=xxx                   : choose which modem application to build:(default is PERIODICAL_UPLINK)")
+    $(call echo_help, " *                                  - PERIODICAL_UPLINK")
+    $(call echo_help, " *                                  - HW_MODEM")
+    $(call echo_help, " *                                  - PORTING_TESTS")
+    $(call echo_help, " *                                  - LCTT_CERTIF")
+    $(call echo_help, " * REGION=xxx                      : choose which region should be compiled (default: all)")
+    $(call echo_help, " *                                  - AS_923")
+    $(call echo_help, " *                                  - AU_915")
+    $(call echo_help, " *                                  - CN_470")
+    $(call echo_help, " *                                  - CN_470_RP_1_0")
+    $(call echo_help, " *                                  - EU_868")
+    $(call echo_help, " *                                  - IN_865")
+    $(call echo_help, " *                                  - KR_920")
+    $(call echo_help, " *                                  - RU_864")
+    $(call echo_help, " *                                  - US_915")
+    $(call echo_help, " *                                  - WW_2G4 (to be used only for lr1120 and sx128x targets)")
+    $(call echo_help, " * CRYPTO=xxx                      : choose which crypto should be compiled (default: SOFT)")
+    $(call echo_help, " *                                  - SOFT")
+    $(call echo_help, " *                                  - LR11XX (only for lr1110 and lr1120 targets)")
+    $(call echo_help, " *                                  - LR11XX_WITH_CREDENTIALS (only for lr1110 and lr1120 targets)")
+    $(call echo_help, " * LBM_TRACE=yes/no                : choose to enable or disable modem trace print (default: trace is ON)")
+    $(call echo_help, " * APP_TRACE=yes/no                : choose to enable or disable application trace print (default: trace is ON)")
+    $(call echo_help, " * ALLOW_RELAY_TX=yes/no           : choose to enable or disable RelayTx (default: no)")
+    $(call echo_help, " * ALLOW_RELAY_RX=yes/no           : choose to enable or disable RelayRx (default: no)")
+    $(call echo_help, "-------------------- Optional makefile parameters --------------------------")
+    $(call echo_help, " * MULTITHREAD=no                  : Disable multithreaded build")
+    $(call echo_help, " * VERBOSE=yes                     : Increase build verbosity")
+    $(call echo_help, " * SIZE=yes                        : Display size for all objects")
+    $(call echo_help, " * DEBUG=yes                       : Compile library and application with debug symbols")
+    """
 
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)

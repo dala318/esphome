@@ -20,7 +20,7 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
  public:
   // EspHome default functions
   void setup() override;
-  // void loop() override;
+  void loop() override;
   // void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 

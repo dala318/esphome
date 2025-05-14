@@ -28,6 +28,8 @@ void LoRaWAN::setup() {
   init_swl2001();
 }
 
+void LoRaWAN::loop() { loop_swl2001(); }
+
 void LoRaWAN::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
   // Send data to stack
 }
