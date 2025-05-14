@@ -9,7 +9,7 @@
 // #include "smtc_modem_core/lorawan_manager/lorawan_join_management.h"
 // }
 #include "swl2001_wrapper.h"
-#include "swl2001_radio_callbacks.h"
+// #include "swl2001_radio_callbacks.h"
 
 namespace esphome {
 namespace lorawan {
@@ -23,8 +23,8 @@ void LoRaWAN::setup() {
   this->parent_->register_listener(this);
 
   // Set-up the SWL2001 stack
-  set_lorawan_component(this);
-  set_lora_component(this->parent_);
+  // set_lorawan_component(this);
+  // set_lora_component(this->parent_);
   init_swl2001();
 }
 

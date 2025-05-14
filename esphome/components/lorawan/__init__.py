@@ -47,12 +47,15 @@ CONFIG_SCHEMA = (
 
 
 async def to_code(config):
-    # cg.add_library("SWL2001", None, "https://github.com/dala318/SWL2001#library")
     cg.add_library(
         "SWL2001",
         None,
-        "https://github.com/dala318/SWL2001#d254d39ed39380b0022961f58bfc541749be7853",
+        # "https://github.com/dala318/SWL2001#libraty",  # Better, but don't force update check on every build
+        # "https://github.com/dala318/SWL2001#afb8974a883d4415cd3d7fdd57c146433eb8d2f7",
+        "https://github.com/dala318/SWL2001#69ae582225c7dc795c2f46f30c074926caf0b61a",
     )
+    cg.add_build_flag("-DTRANSPARENT_RADIO")
+
     # smtc_modem_core/radio_planner/src/radio_planner_hook_id_defs.h
     cg.add_build_flag("-DNUMBER_OF_STACKS=1")
 
