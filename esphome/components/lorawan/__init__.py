@@ -13,7 +13,7 @@ DEPENDENCIES = ["lora"]
 lorawan_ns = cg.esphome_ns.namespace("lorawan")
 LoRaWAN = lorawan_ns.class_("LoRaWAN", cg.Component)
 
-# IS_PLATFORM_COMPONENT = True
+MULTI_CONF = False  # Static object pointer in callbacks prevent multiple instances
 
 DOMAIN = "lorawan"
 
@@ -56,7 +56,7 @@ async def to_code(config):
     # smtc_modem_core/radio_planner/src/radio_planner_hook_id_defs.h
     cg.add_build_flag("-DNUMBER_OF_STACKS=1")
 
-    # From SWL2001 lbm_lib/smtc_modem_core/lr1mac/src/smtc_real/src/smtc_real_defs.h
+    # smtc_modem_core/lr1mac/src/smtc_real/src/smtc_real_defs.h
     # "RP_VERSION (LoRaWAN Regional Parameter version) must be defined: RP2_101 or RP2_103"
     cg.add_build_flag("-DRP2_101")
     # Likely also one of the following should be defined for some of the reginal settings

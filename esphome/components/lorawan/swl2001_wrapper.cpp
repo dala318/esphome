@@ -1,5 +1,7 @@
 extern "C" {
 
+#include "swl2001_radio_callbacks.h"
+
 // #include "lora_basics_modem_version.h"
 // #include "smtc_modem_core/lorawan_manager/lorawan_join_management.h"
 #include "smtc_modem_api/smtc_modem_utilities.h"
@@ -22,22 +24,22 @@ void init_swl2001() {
               .context = nullptr,  // const void*
               .driver =
                   {
-                      .handles_part = nullptr,                    // ral_handles_part_f
-                      .reset = nullptr,                           // ral_reset_f
-                      .init = nullptr,                            // ral_init_f
-                      .wakeup = nullptr,                          // ral_wakeup_f
-                      .set_sleep = nullptr,                       // ral_set_sleep_f
-                      .set_standby = nullptr,                     // ral_set_standby_f
-                      .set_fs = nullptr,                          // ral_set_fs_f
-                      .set_tx = nullptr,                          // ral_set_tx_f
-                      .set_rx = nullptr,                          // ral_set_rx_f
-                      .cfg_rx_boosted = nullptr,                  // ral_cfg_rx_boosted_f
-                      .set_rx_tx_fallback_mode = nullptr,         // ral_set_rx_tx_fallback_mode_f
-                      .stop_timer_on_preamble = nullptr,          // ral_stop_timer_on_preamble_f
-                      .set_rx_duty_cycle = nullptr,               // ral_set_rx_duty_cycle_f
-                      .set_lora_cad = nullptr,                    // ral_set_lora_cad_f
-                      .set_tx_cw = nullptr,                       // ral_set_tx_cw_f
-                      .set_tx_infinite_preamble = nullptr,        // ral_set_tx_infinite_preamble_f
+                      .handles_part = ral_wrapp_handles_part,
+                      .reset = ral_wrapp_reset,
+                      //   .init = ral_wrapp_init,
+                      //   .wakeup = ral_wrapp_wakeup,
+                      //   .set_sleep = ral_wrapp_set_sleep,
+                      //   .set_standby = ral_wrapp_set_standby,
+                      //   .set_fs = ral_wrapp_set_fs,
+                      //   .set_tx = ral_wrapp_set_tx,
+                      //   .set_rx = ral_wrapp_set_rx,
+                      //   .cfg_rx_boosted = ral_wrapp_cfg_rx_boosted,
+                      //   .set_rx_tx_fallback_mode = ral_wrapp_set_rx_tx_fallback_mode,
+                      //   .stop_timer_on_preamble = ral_wrapp_stop_timer_on_preamble,
+                      //   .set_rx_duty_cycle = ral_wrapp_set_rx_duty_cycle,
+                      //   .set_lora_cad = ral_wrapp_set_lora_cad,
+                      //   .set_tx_cw = ral_wrapp_set_tx_cw,
+                      //   .set_tx_infinite_preamble = ral_wrapp_set_tx_infinite_preamble,
                       .cal_img = nullptr,                         // ral_cal_img_f
                       .set_tx_cfg = nullptr,                      // ral_set_tx_cfg_f
                       .set_pkt_payload = nullptr,                 // ral_set_pkt_payload_f
