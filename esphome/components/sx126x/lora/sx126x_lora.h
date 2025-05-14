@@ -19,8 +19,7 @@ class SX126xLoRa : public lora::LoRa, public Parented<SX126x>, public SX126xList
   void set_frequency(uint32_t frequency) override;
   void set_mode(lora::LoRaMode mode) override;
 
- protected:
-  // size_t get_max_packet_size() override { return this->parent_->get_max_packet_size(); }
+  size_t get_max_packet_size() override { return this->parent_->get_max_packet_size(); }
 };
 
 }  // namespace sx126x

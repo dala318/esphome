@@ -16,7 +16,7 @@ class LoRaListener {
 
 class LoRa : public Component {
  public:
-  // EspHome default functions
+  // ESPHome default function overrides
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
@@ -26,11 +26,13 @@ class LoRa : public Component {
   // Radio config functions
   virtual void set_frequency(uint32_t frequency) = 0;
   virtual void set_mode(LoRaMode mode) = 0;
+  virtual size_t get_max_packet_size() = 0;
+
   // Radio operational functions
   void packet_received(const std::vector<uint8_t> &packet, float rssi, float snr);
   virtual void send_packet(const std::vector<uint8_t> &buf) const = 0;
 
-  // Listener functions
+  // On data event registration functions
   void register_listener(LoRaListener *listener) { this->listeners_.push_back(listener); }
   Trigger<std::vector<uint8_t>, float, float> *get_packet_trigger() const { return this->packet_trigger_; };
 
