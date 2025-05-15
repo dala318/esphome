@@ -1,14 +1,15 @@
 #include "esphome/core/log.h"
 
-extern "C" {
-
-// #include "swl2001_radio_callbacks.h"
+#include "esphome/components/lora/lora.h"
+#include "lorawan.h"
+#include "swl2001.h"
 
 #include "smtc_modem_api/smtc_modem_utilities.h"
 #include "smtc_modem_api/smtc_modem_api.h"
 #include "smtc_modem_api/smtc_modem_test_api.h"
 #include "smtc_modem_core/radio_planner/src/radio_planner.h"
 #include "smtc_modem_core/smtc_ralf/src/ralf.h"
+#include "smtc_modem_hal/smtc_modem_hal.h"
 
 // Private macros
 
@@ -34,6 +35,25 @@ extern "C" {
       ESP_LOGW(TAG, "In %s - %s (line %d): %s", __FILE__, __func__, __LINE__, XSTR(SMTC_MODEM_RC_NO_EVENT)); \
     } \
   } while (0)
+
+#define ASSERT_LORA_STATUS(rc_func) \
+  ([&]() -> bool { \
+    esphome::lora::LoRaCommandResponse rc = rc_func; \
+    if (rc == esphome::lora::LoRaCommandResponse::UNSUPPORTED_FEATURE) { \
+      ESP_LOGE(TAG, "In %s - %s (line %d): %s", __FILE__, __func__, __LINE__, \
+               XSTR(esphome::lora::LoRaCommandResponse::UNSUPPORTED_FEATURE)); \
+      return false; \
+    } else if (rc == esphome::lora::LoRaCommandResponse::UNKNOWN_VALUE) { \
+      ESP_LOGE(TAG, "In %s - %s (line %d): %s", __FILE__, __func__, __LINE__, \
+               XSTR(esphome::lora::LoRaCommandResponse::UNKNOWN_VALUE)); \
+      return false; \
+    } else if (rc == esphome::lora::LoRaCommandResponse::ERROR) { \
+      ESP_LOGE(TAG, "In %s - %s (line %d): %s", __FILE__, __func__, __LINE__, \
+               XSTR(esphome::lora::LoRaCommandResponse::ERROR)); \
+      return false; \
+    } \
+    return true; \
+  })()
 
 #define STACK_ID 0
 
@@ -79,6 +99,9 @@ static uint8_t rx_remaining = 0;                                         // Rema
 static volatile bool user_button_is_press = false;  // Flag for button status
 static uint32_t uplink_counter = 0;                 // uplink raising counter
 
+static esphome::lorawan::LoRaWAN *g_lorawan = nullptr;
+static esphome::lora::LoRa *g_lora = nullptr;
+
 #if defined(USE_RELAY_TX)
 static smtc_modem_relay_tx_config_t relay_config = {0};
 #endif
@@ -90,104 +113,22 @@ static uint8_t chip_eui[SMTC_MODEM_EUI_LENGTH] = {0};
 static uint8_t chip_pin[SMTC_MODEM_PIN_LENGTH] = {0};
 #endif
 
+// Forward function declarations
 void swl2001_event_handler();
-static void send_uplink_counter_on_port(uint8_t port);
 
-void init_swl2001() {
-  // Try replicating whats in smtc_modem_core/smtc_modem.c smtc_modem_init()
+// Function definitions
 
-  //   ralf_t modem_radio = {
-  //       .ral =
-  //           {
-  //               .context = nullptr,  // const void*
-  //               .driver =
-  //                   {
-  //                       .handles_part = ral_wrapp_handles_part,
-  //                       .reset = ral_wrapp_reset,
-  //                       //   .init = ral_wrapp_init,
-  //                       //   .wakeup = ral_wrapp_wakeup,
-  //                       //   .set_sleep = ral_wrapp_set_sleep,
-  //                       //   .set_standby = ral_wrapp_set_standby,
-  //                       //   .set_fs = ral_wrapp_set_fs,
-  //                       //   .set_tx = ral_wrapp_set_tx,
-  //                       //   .set_rx = ral_wrapp_set_rx,
-  //                       //   .cfg_rx_boosted = ral_wrapp_cfg_rx_boosted,
-  //                       //   .set_rx_tx_fallback_mode = ral_wrapp_set_rx_tx_fallback_mode,
-  //                       //   .stop_timer_on_preamble = ral_wrapp_stop_timer_on_preamble,
-  //                       //   .set_rx_duty_cycle = ral_wrapp_set_rx_duty_cycle,
-  //                       //   .set_lora_cad = ral_wrapp_set_lora_cad,
-  //                       //   .set_tx_cw = ral_wrapp_set_tx_cw,
-  //                       //   .set_tx_infinite_preamble = ral_wrapp_set_tx_infinite_preamble,
-  //                       .cal_img = nullptr,                         // ral_cal_img_f
-  //                       .set_tx_cfg = nullptr,                      // ral_set_tx_cfg_f
-  //                       .set_pkt_payload = nullptr,                 // ral_set_pkt_payload_f
-  //                       .get_pkt_payload = nullptr,                 // ral_get_pkt_payload_f
-  //                       .get_irq_status = nullptr,                  // ral_get_irq_status_f
-  //                       .clear_irq_status = nullptr,                // ral_clear_irq_status_f
-  //                       .get_and_clear_irq_status = nullptr,        // ral_get_and_clear_irq_status_f
-  //                       .set_dio_irq_params = nullptr,              // ral_set_dio_irq_params_f
-  //                       .set_rf_freq = nullptr,                     // ral_set_rf_freq_f
-  //                       .set_pkt_type = nullptr,                    // ral_set_pkt_type_f
-  //                       .get_pkt_type = nullptr,                    // ral_get_pkt_type_f
-  //                       .set_gfsk_mod_params = nullptr,             // ral_set_gfsk_mod_params_f
-  //                       .set_gfsk_pkt_params = nullptr,             // ral_set_gfsk_pkt_params_f
-  //                       .set_gfsk_pkt_address = nullptr,            // ral_set_gfsk_pkt_address_f
-  //                       .set_lora_mod_params = nullptr,             // ral_set_lora_mod_params_f
-  //                       .set_lora_pkt_params = nullptr,             // ral_set_lora_pkt_params_f
-  //                       .set_lora_cad_params = nullptr,             // ral_set_lora_cad_params_f
-  //                       .set_lora_symb_nb_timeout = nullptr,        // ral_set_lora_symb_nb_timeout_f
-  //                       .set_flrc_mod_params = nullptr,             // ral_set_flrc_mod_params_f
-  //                       .set_flrc_pkt_params = nullptr,             // ral_set_flrc_pkt_params_f
-  //                       .get_gfsk_rx_pkt_status = nullptr,          // ral_get_gfsk_rx_pkt_status_f
-  //                       .get_lora_rx_pkt_status = nullptr,          // ral_get_lora_rx_pkt_status_f
-  //                       .get_flrc_rx_pkt_status = nullptr,          // ral_get_flrc_rx_pkt_status_f
-  //                       .get_rssi_inst = nullptr,                   // ral_get_rssi_inst_f
-  //                       .get_lora_time_on_air_in_ms = nullptr,      // ral_get_lora_time_on_air_in_ms_f
-  //                       .get_gfsk_time_on_air_in_ms = nullptr,      // ral_get_gfsk_time_on_air_in_ms_f
-  //                       .get_flrc_time_on_air_in_ms = nullptr,      // ral_get_flrc_time_on_air_in_ms_f
-  //                       .set_gfsk_sync_word = nullptr,              // ral_set_gfsk_sync_word_f
-  //                       .set_lora_sync_word = nullptr,              // ral_set_lora_sync_word_f
-  //                       .set_flrc_sync_word = nullptr,              // ral_set_flrc_sync_word_f
-  //                       .set_gfsk_crc_params = nullptr,             // ral_set_gfsk_crc_params_f
-  //                       .set_flrc_crc_params = nullptr,             // ral_set_flrc_crc_params_f
-  //                       .set_gfsk_whitening_seed = nullptr,         // ral_set_gfsk_whitening_seed_f
-  //                       .lr_fhss_init = nullptr,                    // ral_lr_fhss_init_f
-  //                       .lr_fhss_build_frame = nullptr,             // ral_lr_fhss_build_frame_f
-  //                       .lr_fhss_handle_hop = nullptr,              // ral_lr_fhss_handle_hop_f
-  //                       .lr_fhss_handle_tx_done = nullptr,          // ral_lr_fhss_handle_tx_done_f
-  //                       .lr_fhss_get_time_on_air_in_ms = nullptr,   // ral_lr_fhss_get_time_on_air_in_ms_f
-  //                       .lr_fhss_get_hop_sequence_count = nullptr,  // ral_lr_fhss_get_hop_sequence_count_f
-  //                       .lr_fhss_get_bit_delay_in_us = nullptr,     // ral_lr_fhss_get_bit_delay_in_us_f
-  //                       .get_lora_rx_pkt_cr_crc = nullptr,          // ral_get_lora_rx_pkt_cr_crc_f
-  //                       .get_tx_consumption_in_ua = nullptr,        // ral_get_tx_consumption_in_ua_f
-  //                       .get_gfsk_rx_consumption_in_ua = nullptr,   // ral_get_gfsk_rx_consumption_in_ua_f
-  //                       .get_lora_rx_consumption_in_ua = nullptr,   // ral_get_lora_rx_consumption_in_ua_f
-  //                       .get_random_numbers = nullptr,              // ral_get_random_numbers_f
-  //                       .handle_rx_done = nullptr,                  // ral_handle_rx_done_f
-  //                       .handle_tx_done = nullptr,                  // ral_handle_tx_done_f
-  //                       .get_lora_cad_det_peak = nullptr,           // ral_get_lora_cad_det_peak_f
-  //                   },
-  //           },
-  //       .ralf_drv =
-  //           {
-  //               .setup_gfsk = nullptr,      // ralf_setup_gfsk_f
-  //               .setup_lora = nullptr,      // ralf_setup_lora_f
-  //               .setup_flrc = nullptr,      // ralf_setup_flrc_f
-  //               .setup_lora_cad = nullptr,  // ralf_setup_lora_cad_f
-  //           },
-  //   };
-  //   radio_planner_t modem_radio_planner;
-  //   rp_init(&modem_radio_planner, &modem_radio);
-
+extern "C" void swl2001_init(void *lorawan_component, void *lora_component) {
+  g_lorawan = static_cast<esphome::lorawan::LoRaWAN *>(lorawan_component);
+  g_lora = static_cast<esphome::lora::LoRa *>(lora_component);
   smtc_modem_init(&swl2001_event_handler);
 }
 
-void loop_swl2001() {
+extern "C" void swl2001_loop() {
   // Check button
   // if( user_button_is_press == true )
   // {
   //     user_button_is_press = false;
-
   //     smtc_modem_status_mask_t status_mask = 0;
   //     smtc_modem_get_status( STACK_ID, &status_mask );
   //     // Check if the device has already joined a network
@@ -197,7 +138,6 @@ void loop_swl2001() {
   //         send_uplink_counter_on_port( 102 );
   //     }
   // }
-
   // Modem process launch
   uint32_t sleep_time_ms = smtc_modem_run_engine();
 
@@ -212,13 +152,29 @@ void loop_swl2001() {
   // hal_mcu_enable_irq( );
 }
 
+extern "C" void swl2001_send_to_stack(uint8_t *buf, uint8_t len, uint8_t port, bool confirmed) {
+  ASSERT_SMTC_MODEM_RC(smtc_modem_request_uplink(STACK_ID, port, confirmed, buf, len));
+}
+
+extern "C" void swl2001_send_to_radio(const uint8_t *buf, const uint8_t len) { g_lorawan->forward_packet(buf, len); }
+
+extern "C" uint8_t swl2001_get_from_radio(uint8_t *buf) { return g_lorawan->read_packet(buf); }
+
+extern "C" bool swl2001_set_mode_init() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::INIT)); }
+extern "C" bool swl2001_set_mode_wakeup() {
+  return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::WAKEUP));
+}
+extern "C" bool swl2001_set_mode_sleep() {
+  return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::SLEEP));
+}
+extern "C" bool swl2001_set_mode_rx() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::RX)); }
+extern "C" bool swl2001_set_mode_tx() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::TX)); }
+
 void swl2001_event_handler() {
   ESP_LOGD(TAG, "Event available");
-
   smtc_modem_event_t current_event;
   uint8_t event_pending_count;
   uint8_t stack_id = STACK_ID;
-
   // Continue to read modem event until all event has been processed
   do {
     // Read modem event
@@ -227,7 +183,6 @@ void swl2001_event_handler() {
     switch (current_event.event_type) {
       case SMTC_MODEM_EVENT_RESET:
         ESP_LOGI(TAG, "Event received: RESET");
-
         // #if !defined( USE_LR11XX_CREDENTIALS )
         //             // Set user credentials
         //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_deveui( stack_id, user_dev_eui ) );
@@ -250,24 +205,19 @@ void swl2001_event_handler() {
         //             // transmission
         //             // if you want to disable the csma please uncomment the next line
         //             // ASSERT_SMTC_MODEM_RC(smtc_modem_csma_set_state (stack_id,false));
-
         //             relay_config.second_ch_enable = false;
-
         //             // The RelayModeActivation field indicates how the end-device SHOULD manage the relay mode.
         //             relay_config.activation =
         //                 SMTC_MODEM_RELAY_TX_ACTIVATION_MODE_ENABLE;  // SMTC_MODEM_RELAY_TX_ACTIVATION_MODE_DYNAMIC;
-
         //             // number_of_miss_wor_ack_to_switch_in_nosync_mode  field indicates that the
         //             // relay mode SHALL be restart in no sync mode when it does not receive a WOR ACK frame after
         //             // number_of_miss_wor_ack_to_switch_in_nosync_mode consecutive uplinks.
         //             relay_config.number_of_miss_wor_ack_to_switch_in_nosync_mode = 3;
-
         //             // smart_level field indicates that the
         //             // relay mode SHALL be enabled if the end-device does not receive a valid downlink after
         //             smart_level
         //             // consecutive uplinks.
         //             relay_config.smart_level = 8;
-
         //             // The BackOff field indicates how the end-device SHALL behave when it does not receive
         //             // a WOR ACK frame.
         //             // BackOff Description
@@ -276,23 +226,17 @@ void swl2001_event_handler() {
         //             relay_config.backoff = 0;  // 4;
         //             ASSERT_SMTC_MODEM_RC( smtc_modem_relay_tx_enable( stack_id, &relay_config ) );
         // #endif
-
         ASSERT_SMTC_MODEM_RC(smtc_modem_join_network(stack_id));
         break;
 
       case SMTC_MODEM_EVENT_ALARM:
         ESP_LOGI(TAG, "Event received: ALARM");
-        // Send periodical uplink on port 101
-        send_uplink_counter_on_port(101);
         // Restart periodical uplink alarm
         ASSERT_SMTC_MODEM_RC(smtc_modem_alarm_start_timer(PERIODICAL_UPLINK_DELAY_S));
         break;
 
       case SMTC_MODEM_EVENT_JOINED:
         ESP_LOGI(TAG, "Event received: JOINED");
-
-        // Send first periodical uplink on port 101
-        send_uplink_counter_on_port(101);
         // start periodical uplink alarm
         ASSERT_SMTC_MODEM_RC(smtc_modem_alarm_start_timer(DELAY_FIRST_MSG_AFTER_JOIN));
         break;
@@ -310,7 +254,7 @@ void swl2001_event_handler() {
         break;
 
       case SMTC_MODEM_EVENT_JOINFAIL:
-        ESP_LOGI(TAG, "Event received: JOINFAIL");
+        ESP_LOGW(TAG, "Event received: JOINFAIL");
         break;
 
       case SMTC_MODEM_EVENT_ALCSYNC_TIME:
@@ -330,7 +274,7 @@ void swl2001_event_handler() {
         break;
 
       case SMTC_MODEM_EVENT_LORAWAN_MAC_TIME:
-        ESP_LOGW(TAG, "Event received: LORAWAN MAC TIME");
+        ESP_LOGI(TAG, "Event received: LORAWAN MAC TIME");
         break;
 
       case SMTC_MODEM_EVENT_LORAWAN_FUOTA_DONE: {
@@ -361,10 +305,9 @@ void swl2001_event_handler() {
 
       case SMTC_MODEM_EVENT_FIRMWARE_MANAGEMENT:
         ESP_LOGI(TAG, "Event received: FIRMWARE_MANAGEMENT");
-        // if( current_event.event_data.fmp.status == SMTC_MODEM_EVENT_FMP_REBOOT_IMMEDIATELY )
-        // {
-        //     smtc_modem_hal_reset_mcu( );
-        // }
+        if (current_event.event_data.fmp.status == SMTC_MODEM_EVENT_FMP_REBOOT_IMMEDIATELY) {
+          smtc_modem_hal_reset_mcu();
+        }
         break;
 
       case SMTC_MODEM_EVENT_STREAM_DONE:
@@ -382,15 +325,19 @@ void swl2001_event_handler() {
       case SMTC_MODEM_EVENT_MUTE:
         ESP_LOGI(TAG, "Event received: MUTE");
         break;
+
       case SMTC_MODEM_EVENT_RELAY_TX_DYNAMIC:  //!< Relay TX dynamic mode has enable or disable the WOR protocol
         ESP_LOGI(TAG, "Event received: RELAY_TX_DYNAMIC");
         break;
+
       case SMTC_MODEM_EVENT_RELAY_TX_MODE:  //!< Relay TX activation has been updated
         ESP_LOGI(TAG, "Event received: RELAY_TX_MODE");
         break;
+
       case SMTC_MODEM_EVENT_RELAY_TX_SYNC:  //!< Relay TX synchronisation has changed
         ESP_LOGI(TAG, "Event received: RELAY_TX_SYNC");
         break;
+
       case SMTC_MODEM_EVENT_RELAY_RX_RUNNING:
         ESP_LOGI(TAG, "Event received: RELAY_RX_RUNNING");
         // #if defined( ADD_CSMA )
@@ -408,11 +355,12 @@ void swl2001_event_handler() {
         //             }
         // #endif  // ENABLE_CSMA_BY_DEFAULT
         // #endif  // ADD_CSMA
-
         break;
+
       case SMTC_MODEM_EVENT_REGIONAL_DUTY_CYCLE:
         ESP_LOGI(TAG, "Event received: DUTY_CYCLE");
         break;
+
       case SMTC_MODEM_EVENT_TEST_MODE: {
         uint8_t status_test_mode = current_event.event_data.test_mode_status.status;
         // #if MODEM_HAL_DBG_TRACE == MODEM_HAL_FEATURE_ON
@@ -430,7 +378,6 @@ void swl2001_event_handler() {
           // SMTC_HAL_TRACE_ARRAY( "rx_payload", rx_payload, rx_payload_length );
           ESP_LOGD(TAG, "rssi: %d, snr: %d", rssi, snr);
         }
-
         break;
       }
 
@@ -440,17 +387,3 @@ void swl2001_event_handler() {
     }
   } while (event_pending_count > 0);
 }
-
-static void send_uplink_counter_on_port(uint8_t port) {
-  // Send uplink counter on port 102
-  uint8_t buff[4] = {0};
-  buff[0] = (uplink_counter >> 24) & 0xFF;
-  buff[1] = (uplink_counter >> 16) & 0xFF;
-  buff[2] = (uplink_counter >> 8) & 0xFF;
-  buff[3] = (uplink_counter & 0xFF);
-  ASSERT_SMTC_MODEM_RC(smtc_modem_request_uplink(STACK_ID, port, false, buff, 4));
-  // Increment uplink counter
-  uplink_counter++;
-}
-
-}  // extern "C"

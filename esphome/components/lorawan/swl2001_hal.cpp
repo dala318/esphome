@@ -1,58 +1,61 @@
 #include "esphome/core/hal.h"
-
-extern "C" {
+#include "esphome/core/helpers.h"
+#include "esphome/core/log.h"
 
 #include "smtc_modem_hal/smtc_modem_hal.h"
 
+static const char *const TAG = "lorawan_swll2001_ral";
+
 /* ------------ Reset management ------------*/
 
-void smtc_modem_hal_reset_mcu(void) {
+extern "C" void smtc_modem_hal_reset_mcu(void) {
   // hal_mcu_reset( );
 }
 
 /* ------------ Watchdog management ------------*/
 
-void smtc_modem_hal_reload_wdog(void) {
+extern "C" void smtc_modem_hal_reload_wdog(void) {
   // hal_watchdog_reload( );
 }
 
 /* ------------ Time management ------------*/
 
-uint32_t smtc_modem_hal_get_time_in_s(void) { return esphome::millis() / 1000u; }
+extern "C" uint32_t smtc_modem_hal_get_time_in_s(void) { return esphome::millis() / 1000u; }
 
-uint32_t smtc_modem_hal_get_time_in_ms() { return esphome::millis(); }
+extern "C" uint32_t smtc_modem_hal_get_time_in_ms() { return esphome::millis(); }
 
-void smtc_modem_hal_set_offset_to_test_wrapping(const uint32_t offset_to_test_wrapping) {
+extern "C" void smtc_modem_hal_set_offset_to_test_wrapping(const uint32_t offset_to_test_wrapping) {
   // hal_rtc_set_offset_to_test_wrapping( offset_to_test_wrapping );
 }
 
 /* ------------ Timer management ------------*/
 
-void smtc_modem_hal_start_timer(const uint32_t milliseconds, void (*callback)(void *context), void *context) {
+extern "C" void smtc_modem_hal_start_timer(const uint32_t milliseconds, void (*callback)(void *context),
+                                           void *context) {
   // hal_lp_timer_start( HAL_LP_TIMER_ID_1, milliseconds,
   //                     &( hal_lp_timer_irq_t ) { .context = context, .callback = callback } );
 }
 
-void smtc_modem_hal_stop_timer(void) {
+extern "C" void smtc_modem_hal_stop_timer(void) {
   // hal_lp_timer_stop( HAL_LP_TIMER_ID_1 );
 }
 
 /* ------------ IRQ management ------------*/
 
-void smtc_modem_hal_disable_modem_irq(void) {
+extern "C" void smtc_modem_hal_disable_modem_irq(void) {
   // hal_gpio_irq_disable( );
   // hal_lp_timer_irq_disable( HAL_LP_TIMER_ID_1 );
 }
 
-void smtc_modem_hal_enable_modem_irq(void) {
+extern "C" void smtc_modem_hal_enable_modem_irq(void) {
   // hal_gpio_irq_enable( );
   // hal_lp_timer_irq_enable( HAL_LP_TIMER_ID_1 );
 }
 
 /* ------------ Context saving management ------------*/
 
-void smtc_modem_hal_context_restore(const modem_context_type_t ctx_type, uint32_t offset, uint8_t *buffer,
-                                    const uint32_t size) {
+extern "C" void smtc_modem_hal_context_restore(const modem_context_type_t ctx_type, uint32_t offset, uint8_t *buffer,
+                                               const uint32_t size) {
   // Offset is only used for fuota and store and forward purpose and for multistack features. To avoid ram consumption
   // the use of hal_flash_read_modify_write is only done in these cases
   // switch( ctx_type )
@@ -81,8 +84,8 @@ void smtc_modem_hal_context_restore(const modem_context_type_t ctx_type, uint32_
   // }
 }
 
-void smtc_modem_hal_context_store(const modem_context_type_t ctx_type, uint32_t offset, const uint8_t *buffer,
-                                  const uint32_t size) {
+extern "C" void smtc_modem_hal_context_store(const modem_context_type_t ctx_type, uint32_t offset,
+                                             const uint8_t *buffer, const uint32_t size) {
   // Offset is only used for fuota and store and forward purpose and for multistack features. To avoid ram consumption
   // the use of hal_flash_read_modify_write is only done in these cases
   // switch( ctx_type )
@@ -111,7 +114,8 @@ void smtc_modem_hal_context_store(const modem_context_type_t ctx_type, uint32_t 
   // }
 }
 
-void smtc_modem_hal_context_flash_pages_erase(const modem_context_type_t ctx_type, uint32_t offset, uint8_t nb_page) {
+extern "C" void smtc_modem_hal_context_flash_pages_erase(const modem_context_type_t ctx_type, uint32_t offset,
+                                                         uint8_t nb_page) {
   // switch( ctx_type )
   // {
   // case CONTEXT_STORE_AND_FORWARD:
@@ -125,23 +129,23 @@ void smtc_modem_hal_context_flash_pages_erase(const modem_context_type_t ctx_typ
 
 /* ------------ Crashlog management ------------*/
 
-void smtc_modem_hal_crashlog_store(const uint8_t *crash_string, uint8_t crash_string_length) {
+extern "C" void smtc_modem_hal_crashlog_store(const uint8_t *crash_string, uint8_t crash_string_length) {
   // crashlog_length_noinit = MIN( crash_string_length, CRASH_LOG_SIZE );
   // memcpy( crashlog_buff_noinit, crash_string, crashlog_length_noinit );
   // crashlog_available_noinit = true;
 }
 
-void smtc_modem_hal_crashlog_restore(uint8_t *crash_string, uint8_t *crash_string_length) {
+extern "C" void smtc_modem_hal_crashlog_restore(uint8_t *crash_string, uint8_t *crash_string_length) {
   // *crash_string_length = ( crashlog_length_noinit > CRASH_LOG_SIZE ) ? CRASH_LOG_SIZE : crashlog_length_noinit;
   // memcpy( crash_string, crashlog_buff_noinit, *crash_string_length );
 }
 
-void smtc_modem_hal_crashlog_set_status(bool available) {
+extern "C" void smtc_modem_hal_crashlog_set_status(bool available) {
   // crashlog_available_noinit = available;
 }
 
-static volatile bool temp = 0x1;  // solve new behaviour introduce with gcc11 compilo
-bool smtc_modem_hal_crashlog_get_status(void) {
+// static volatile bool temp = 0x1;  // solve new behaviour introduce with gcc11 compilo
+extern "C" bool smtc_modem_hal_crashlog_get_status(void) {
   // bool temp2 = crashlog_available_noinit & temp;
   // return temp2;
   return true;
@@ -149,47 +153,42 @@ bool smtc_modem_hal_crashlog_get_status(void) {
 
 /* ------------ Assert management ------------*/
 
-void smtc_modem_hal_on_panic(uint8_t *func, uint32_t line, const char *fmt, ...) {
+extern "C" void smtc_modem_hal_on_panic(uint8_t *func, uint32_t line, const char *fmt, ...) {
   // uint8_t out_buff[255] = { 0 };
   // uint8_t out_len       = snprintf( ( char* ) out_buff, sizeof( out_buff ), "%s:%lu ", func, line );
-
   // va_list args;
   // va_start( args, fmt );
   // out_len += vsprintf( ( char* ) &out_buff[out_len], fmt, args );
   // va_end( args );
-
   // smtc_modem_hal_crashlog_store( out_buff, out_len );
-
   // SMTC_HAL_TRACE_ERROR( "Modem panic: %s\n", out_buff );
   // smtc_modem_hal_reset_mcu( );
 }
 
 /* ------------ Random management ------------*/
 
-uint32_t smtc_modem_hal_get_random_nb_in_range(const uint32_t val_1, const uint32_t val_2) {
-  // return hal_rng_get_random_in_range( val_1, val_2 );
-  return 0;
+extern "C" uint32_t smtc_modem_hal_get_random_nb_in_range(const uint32_t val_1, const uint32_t val_2) {
+  return esphome::random_uint32() % ((val_2 - val_1 + 1) + val_1);
 }
 
 /* ------------ Radio env management ------------*/
 
-void smtc_modem_hal_irq_config_radio_irq(void (*callback)(void *context), void *context) {
+extern "C" void smtc_modem_hal_irq_config_radio_irq(void (*callback)(void *context), void *context) {
   // radio_dio_irq.pin      = RADIO_DIOX;
   // radio_dio_irq.callback = callback;
   // radio_dio_irq.context  = context;
-
   // hal_gpio_irq_attach( &radio_dio_irq );
 }
 
-void smtc_modem_hal_start_radio_tcxo(void) {
+extern "C" void smtc_modem_hal_start_radio_tcxo(void) {
   // put here the code that will start the tcxo if needed
 }
 
-void smtc_modem_hal_stop_radio_tcxo(void) {
+extern "C" void smtc_modem_hal_stop_radio_tcxo(void) {
   // put here the code that will stop the tcxo if needed
 }
 
-uint32_t smtc_modem_hal_get_radio_tcxo_startup_delay_ms(void) {
+extern "C" uint32_t smtc_modem_hal_get_radio_tcxo_startup_delay_ms(void) {
   // Tcxo is present on LR1110 and LR1120 evk boards, LR1121 ref board does not have tcxo but only 32MHz xtal
   // #if defined( LR11XX ) && !defined( LR1121 )
   //     return 5;
@@ -199,7 +198,7 @@ uint32_t smtc_modem_hal_get_radio_tcxo_startup_delay_ms(void) {
   return 0;
 }
 
-void smtc_modem_hal_set_ant_switch(bool is_tx_on) {
+extern "C" void smtc_modem_hal_set_ant_switch(bool is_tx_on) {
   // #if defined( SX127X )
   //     hal_gpio_set_value( RADIO_ANTENNA_SWITCH, ( is_tx_on == true ) ? 1 : 0 );
   // #endif
@@ -207,7 +206,7 @@ void smtc_modem_hal_set_ant_switch(bool is_tx_on) {
 
 /* ------------ Environment management ------------*/
 
-uint8_t smtc_modem_hal_get_battery_level(void) {
+extern "C" uint8_t smtc_modem_hal_get_battery_level(void) {
   // Please implement according to used board
   // According to LoRaWan 1.0.4 spec:
   // 0: The end-device is connected to an external power source.
@@ -216,7 +215,7 @@ uint8_t smtc_modem_hal_get_battery_level(void) {
   return 255;
 }
 
-int8_t smtc_modem_hal_get_board_delay_ms(void) {
+extern "C" int8_t smtc_modem_hal_get_board_delay_ms(void) {
   // #if defined( LR1121 )
   //     return 2;
   // #else
@@ -227,7 +226,7 @@ int8_t smtc_modem_hal_get_board_delay_ms(void) {
 
 /* ------------ Trace management ------------*/
 
-void smtc_modem_hal_print_trace(const char *fmt, ...) {
+extern "C" void smtc_modem_hal_print_trace(const char *fmt, ...) {
   // va_list args;
   // va_start( args, fmt );
   // hal_trace_print( fmt, args );
@@ -237,41 +236,27 @@ void smtc_modem_hal_print_trace(const char *fmt, ...) {
 /* ------------ Fuota management ------------*/
 
 #if defined(USE_FUOTA)
-uint32_t smtc_modem_hal_get_hw_version_for_fuota(void) {
+extern "C" uint32_t smtc_modem_hal_get_hw_version_for_fuota(void) {
   // Example value, please fill with application value
   return 0x12345678;
 }
 
-/**
- * @brief Only use if fmp package is activated
- *
- * @return uint32_t fw version as defined in fmp Alliance package TS006-1.0.0
- */
-uint32_t smtc_modem_hal_get_fw_version_for_fuota(void) {
+extern "C" uint32_t smtc_modem_hal_get_fw_version_for_fuota(void) {
   // Example value, please fill with application value
   return 0x11223344;
 }
 
-/**
- * @brief Only use if fmp package is activated
- *
- * @return uint8_t fw status field as defined in fmp Alliance package TS006-1.0.0
- */
-uint8_t smtc_modem_hal_get_fw_status_available_for_fuota(void) {
+extern "C" uint8_t smtc_modem_hal_get_fw_status_available_for_fuota(void) {
   // Example value, please fill with application value
   return 3;
 }
 
-uint32_t smtc_modem_hal_get_next_fw_version_for_fuota(void) {
+extern "C" uint32_t smtc_modem_hal_get_next_fw_version_for_fuota(void) {
   // Example value, please fill with application value
   return 0x17011973;
 }
-/**
- * @brief Only use if fmp package is activated
- * @param [in] fw_to_delete_version    fw_to_delete_version as described in TS006-1.0.0
- * @return uint8_t fw status field as defined in fmp Alliance package TS006-1.0.0
- */
-uint8_t smtc_modem_hal_get_fw_delete_status_for_fuota(uint32_t fw_to_delete_version) {
+
+extern "C" uint8_t smtc_modem_hal_get_fw_delete_status_for_fuota(uint32_t fw_to_delete_version) {
   if (fw_to_delete_version != smtc_modem_hal_get_next_fw_version_for_fuota()) {
     return 2;
   } else {
@@ -282,18 +267,25 @@ uint8_t smtc_modem_hal_get_fw_delete_status_for_fuota(uint32_t fw_to_delete_vers
 
 /* ------------ Needed for Cloud  ------------*/
 
-int8_t smtc_modem_hal_get_temperature(void) {
+extern "C" int8_t smtc_modem_hal_get_temperature(void) {
   // Please implement according to used board
   return 25;
 }
 
-uint16_t smtc_modem_hal_get_voltage_mv(void) { return 3300; }
+extern "C" uint16_t smtc_modem_hal_get_voltage_mv(void) {
+  // Please implement according to used board
+  return 3300;
+}
 
 /* ------------ Needed for Store and Forward service  ------------*/
-#if defined(USE_STORE_AND_FORWARD)
-uint16_t smtc_modem_hal_store_and_forward_get_number_of_pages(void) { return 10; }
 
-uint16_t smtc_modem_hal_flash_get_page_size(void) {
+#if defined(USE_STORE_AND_FORWARD)
+extern "C" uint16_t smtc_modem_hal_store_and_forward_get_number_of_pages(void) {
+  // Implement real function
+  return 10;
+}
+
+extern "C" uint16_t smtc_modem_hal_flash_get_page_size(void) {
   // return hal_flash_get_page_size( );
   return 0;
 }
@@ -301,8 +293,6 @@ uint16_t smtc_modem_hal_flash_get_page_size(void) {
 
 /* ------------ For Real Time OS compatibility  ------------*/
 
-void smtc_modem_hal_user_lbm_irq(void) {
+extern "C" void smtc_modem_hal_user_lbm_irq(void) {
   // Do nothing in case implementation is bare metal
 }
-
-}  // extern "C"

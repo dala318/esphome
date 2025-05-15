@@ -6,10 +6,20 @@
 #include "esphome/core/component.h"
 #include "esphome/core/preferences.h"
 
+#include <deque>
 #include <vector>
+
+#define UPLINK_DEFAULT_PORT 101u
+#define UPLINK_DEFAULT_CONFIRMED false
 
 namespace esphome {
 namespace lorawan {
+
+struct RadioPacket {
+  const std::vector<uint8_t> &packet;
+  float rssi;
+  float snr;
+};
 
 class LoRaWANListener {
  public:
@@ -35,9 +45,14 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
     std::copy(app_key.begin(), app_key.end(), this->app_key_.begin());
   }
 
-  // Operational functions
+  // Lora interaction functions
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
-  void send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
+  void forward_packet(const uint8_t *buf, const uint8_t len);
+  uint8_t read_packet(uint8_t *buf);
+
+  // LoRaWAN interaction functions
+  void send_packet(std::vector<uint8_t> &data, uint8_t port = UPLINK_DEFAULT_PORT,
+                   bool confirmed = UPLINK_DEFAULT_CONFIRMED);
 
   // Listener functions
   void register_listener(LoRaWANListener *listener) { this->listeners_.push_back(listener); }
@@ -48,10 +63,7 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   std::array<uint8_t, 8> dev_eui_;
   std::array<uint8_t, 8> app_eui_;
 
-  // uint16_t dev_nonce_;
-  // ESPPreferenceObject dev_nonce_pref_;
-
-  bool joined_;
+  std::deque<RadioPacket> rx_buffer;
 
   std::vector<LoRaWANListener *> listeners_;
   void call_listeners_(const std::vector<uint8_t> &packet, float rssi, float snr);

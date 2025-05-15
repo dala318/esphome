@@ -40,9 +40,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-// #include "transparent.h"
+
+#include "esphome/core/log.h"
+
 #include "smtc_modem_core/smtc_ral/src/ral_transparent.h"
-// #include "ral_transparent_bsp.h"
+
+#include "swl2001.h"
 
 /*
  * -----------------------------------------------------------------------------
@@ -53,6 +56,8 @@
  * -----------------------------------------------------------------------------
  * --- PRIVATE CONSTANTS -------------------------------------------------------
  */
+
+static const char *const TAG = "lorawan_swll2001_ral";
 
 /*
  * -----------------------------------------------------------------------------
@@ -69,127 +74,6 @@
  * --- PRIVATE FUNCTIONS DECLARATION -------------------------------------------
  */
 
-// /*!
-//  * @brief Convert preamble length to transparent_lora_ranging_preamble_len_t (i.e. an integer into an
-//  exponent/mantissa pair)
-//  *
-//  * @param [in] preamble_len_in_symb Number of symbols
-//  *
-//  * @returns transparent_lora_ranging_preamble_len_t, containing exponent and mantissa
-//  *
-//  * @warning This function rounds the preamble length up to the next valid mantissa/exponent pair, and clamps the
-//  value
-//  * to the maximum value 61440
-//  */
-// transparent_lora_ranging_preamble_len_t ral_transparent_convert_lora_pbl_len_from_ral( const uint16_t
-// preamble_len_in_symb );
-
-// /**
-//  * @brief Convert interrupt flags from Transparent context to RAL context
-//  *
-//  * @param [in] transparent_irq  Transparent interrupt status
-//  *
-//  * @returns RAL interrupt status
-//  */
-// ral_irq_t ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask_t transparent_irq );
-
-// /**
-//  * @brief Convert interrupt flags from RAL context to Transparent context
-//  *
-//  * @param [in] ral_irq RAL interrupt status
-//  *
-//  * @returns transparent_irq Transparent interrupt status
-//  */
-// transparent_irq_mask_t ral_transparent_convert_irq_flags_from_ral( ral_irq_t ral_irq );
-
-// /**
-//  * @brief Convert GFSK modulation parameters from RAL context to Transparent context
-//  *
-//  * @param [in] ral_mod_params     RAL modulation parameters
-//  * @param [out] radio_mod_params  Radio modulation parameters
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_gfsk_mod_params_from_ral( const ral_gfsk_mod_params_t* ral_mod_params,
-//                                                           transparent_mod_params_gfsk_t*    radio_mod_params );
-
-// /**
-//  * @brief Convert GFSK packet parameters from RAL context to Transparent context
-//  *
-//  * @param [in] ral_pkt_params     RAL packet parameters
-//  * @param [out] radio_pkt_params  Radio packet parameters
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_gfsk_pkt_params_from_ral( const ral_gfsk_pkt_params_t* ral_pkt_params,
-//                                                           transparent_pkt_params_gfsk_t*    radio_pkt_params );
-
-// /**
-//  * @brief Convert LoRa modulation parameters from RAL context to Transparent context
-//  *
-//  * @param [in] ral_mod_params     RAL modulation parameters
-//  * @param [out] radio_mod_params  Radio modulation parameters
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_lora_mod_params_from_ral( const ral_lora_mod_params_t* ral_mod_params,
-//                                                           transparent_mod_params_lora_t*    radio_mod_params );
-
-// /**
-//  * @brief Convert LoRa packet parameters from RAL context to Transparent context
-//  *
-//  * @param [in] ral_pkt_params     RAL packet parameters
-//  * @param [out] radio_pkt_params  Radio packet parameters
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_lora_pkt_params_from_ral( const ral_lora_pkt_params_t* ral_pkt_params,
-//                                                           transparent_pkt_params_lora_t*    radio_pkt_params );
-
-// /**
-//  * @brief Convert LoRa coding rate value from RAL context to Transparent context
-//  *
-//  * @param [in] ral_bw     RAL LoRa bandwidth value
-//  * @param [out] radio_bw  Radio LoRa bandwidth value
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_lora_bw_from_radio( const ral_lora_bw_t ral_bw, transparent_lora_bw_t* radio_bw
-// );
-
-// /**
-//  * @brief Convert LoRa coding rate value from Transparent context to RAL context
-//  *
-//  * @param [in] radio_cr  Radio LoRa coding rate value
-//  * @param [out] ral_cr   RAL LoRa coding rate value
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_lora_cr_to_ral( const transparent_lora_ranging_cr_t radio_cr, ral_lora_cr_t*
-// ral_cr );
-
-// /**
-//  * @brief Convert FLRC modulation parameters from RAL context to Transparent context
-//  *
-//  * @param [in] ral_mod_params     RAL modulation parameters
-//  * @param [out] radio_mod_params  Radio modulation parameters
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_flrc_mod_params_from_ral( const ral_flrc_mod_params_t* ral_mod_params,
-//                                                           transparent_mod_params_flrc_t*    radio_mod_params );
-
-// /**
-//  * @brief Convert FLRC packet parameters from RAL context to Transparent context
-//  *
-//  * @param [in] ral_pkt_params     RAL packet parameters
-//  * @param [out] radio_pkt_params  Radio packet parameters
-//  *
-//  * @returns Operation status
-//  */
-// ral_status_t ral_transparent_convert_flrc_pkt_params_from_ral( const ral_flrc_pkt_params_t* ral_pkt_params,
-//                                                           transparent_pkt_params_flrc_t*    radio_pkt_params );
-
 /*
  * -----------------------------------------------------------------------------
  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
@@ -197,19 +81,20 @@
 
 extern "C" bool ral_transparent_handles_part(const char *part_number) {
   // return ( strcmp( "sx1280", part_number ) == 0 ) || ( strcmp( "sx1281", part_number ) == 0 );
-  return false;
+  ESP_LOGD(TAG, "Sending unconditional true for part_number: %s", part_number);
+  return true;
 }
 
 extern "C" ral_status_t ral_transparent_reset(const void *context) {
   // return ( ral_status_t ) transparent_reset( context );
+
+  // Call radio configure();
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_init(const void *context) {
   // transparent_reg_mod_t reg_mode;
-
   // ral_transparent_bsp_get_reg_mode( context, &reg_mode );
-
   // return ( ral_status_t ) transparent_set_reg_mode( context, reg_mode );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -228,14 +113,12 @@ extern "C" ral_status_t ral_transparent_set_sleep(const void *context, const boo
   //         return status;
   //     }
   // }
-
   // return ( ral_status_t ) transparent_set_sleep( context, false, retain_config );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_standby(const void *context, ral_standby_cfg_t standby_cfg) {
   // transparent_standby_cfg_t radio_standby_cfg;
-
   // switch( standby_cfg )
   // {
   // case RAL_STANDBY_CFG_RC:
@@ -251,18 +134,17 @@ extern "C" ral_status_t ral_transparent_set_standby(const void *context, ral_sta
   // default:
   //     return RAL_STATUS_UNKNOWN_VALUE;
   // }
-
   // return ( ral_status_t ) transparent_set_standby( context, radio_standby_cfg );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
-extern "C" ral_status_t ral_transparent_set_fs(const void *context) {
-  // return RAL_STATUS_UNSUPPORTED_FEATURE;
-  return RAL_STATUS_UNSUPPORTED_FEATURE;
-}
+extern "C" ral_status_t ral_transparent_set_fs(const void *context) { return RAL_STATUS_UNSUPPORTED_FEATURE; }
 
 extern "C" ral_status_t ral_transparent_set_tx(const void *context) {
   // return ( ral_status_t ) transparent_set_tx( context, TRANSPARENT_TICK_SIZE_1000_US, 0 );
+  if (swl2001_set_mode_tx()) {
+    return RAL_STATUS_OK;
+  }
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
@@ -286,6 +168,9 @@ extern "C" ral_status_t ral_transparent_set_rx(const void *context, const uint32
   //         return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_4000_US, timeout_in_ms >> 2 );
   //     }
   // }
+  if (swl2001_set_mode_rx()) {
+    return RAL_STATUS_OK;
+  }
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
@@ -297,7 +182,6 @@ extern "C" ral_status_t ral_transparent_cfg_rx_boosted(const void *context, cons
 extern "C" ral_status_t ral_transparent_set_rx_tx_fallback_mode(const void *context,
                                                                 const ral_fallback_modes_t ral_fallback_mode) {
   // bool fallback_mode_is_fs;
-
   // switch( ral_fallback_mode )
   // {
   // case RAL_FALLBACK_STDBY_RC:
@@ -319,7 +203,6 @@ extern "C" ral_status_t ral_transparent_set_rx_tx_fallback_mode(const void *cont
   //     return RAL_STATUS_UNKNOWN_VALUE;
   // }
   // }
-
   // return ( ral_status_t ) transparent_set_auto_fs( context, fallback_mode_is_fs );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -371,9 +254,7 @@ extern "C" ral_status_t ral_transparent_set_tx_cfg(const void *context, const in
   //     .freq_in_hz               = rf_freq_in_hz,
   //     .system_output_pwr_in_dbm = output_pwr_in_dbm,
   // };
-
   // ral_transparent_bsp_get_tx_cfg( context, &tx_cfg_input_params, &tx_cfg_output_params );
-
   // return ( ral_status_t ) transparent_set_tx_params( context, tx_cfg_output_params.chip_output_pwr_in_dbm_configured,
   //                                               tx_cfg_output_params.pa_ramp_time );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -382,38 +263,31 @@ extern "C" ral_status_t ral_transparent_set_tx_cfg(const void *context, const in
 extern "C" ral_status_t ral_transparent_set_pkt_payload(const void *context, const uint8_t *buffer,
                                                         const uint16_t size) {
   // ral_status_t status = RAL_STATUS_ERROR;
-
   // status = ( ral_status_t ) transparent_set_buffer_base_address( context, 0x00, 0x00 );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ( ral_status_t ) transparent_write_buffer( context, 0x00, buffer, size );
-
   // return status;
+  swl2001_send_to_radio(buffer, size);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uint16_t max_size_in_bytes,
                                                         uint8_t *buffer, uint16_t *size_in_bytes) {
   // uint8_t pkt_len;
-
   // transparent_rx_buffer_status_t sx_buf_status;
   // ral_status_t              status = ( ral_status_t ) transparent_get_rx_buffer_status( context, &sx_buf_status );
-
   // if( status == RAL_STATUS_OK )
   // {
   //     transparent_pkt_type_t           pkt_type     = TRANSPARENT_PKT_TYPE_GFSK;
   //     transparent_lora_pkt_len_modes_t pkt_len_mode = TRANSPARENT_LORA_RANGING_PKT_EXPLICIT;
-
   //     status = ( ral_status_t ) transparent_get_pkt_type( context, &pkt_type );
-
   //     if( ( status == RAL_STATUS_OK ) && ( pkt_type == TRANSPARENT_PKT_TYPE_LORA ) )
   //     {
   //         status = ( ral_status_t ) transparent_get_lora_pkt_len_mode( context, &pkt_len_mode );
   //     }
-
   //     if( status == RAL_STATUS_OK )
   //     {
   //         if( ( pkt_type == TRANSPARENT_PKT_TYPE_LORA ) && ( pkt_len_mode == TRANSPARENT_LORA_RANGING_PKT_IMPLICIT )
@@ -425,12 +299,10 @@ extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uin
   //         {
   //             pkt_len = sx_buf_status.pld_len_in_bytes;
   //         }
-
   //         if( size_in_bytes != 0 )
   //         {
   //             *size_in_bytes = pkt_len;
   //         }
-
   //         if( status == RAL_STATUS_OK )
   //         {
   //             if( pkt_len <= max_size_in_bytes )
@@ -447,28 +319,26 @@ extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uin
   //     }
   // }
   // return status;
+
+  *size_in_bytes = swl2001_get_from_radio(buffer);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_get_irq_status(const void *context, ral_irq_t *irq) {
   // ral_status_t      status          = RAL_STATUS_ERROR;
   // transparent_irq_mask_t transparent_irq_mask = TRANSPARENT_IRQ_NONE;
-
   // status = ( ral_status_t ) transparent_get_irq_status( context, &transparent_irq_mask );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_clear_irq_status(const void *context, const ral_irq_t irq) {
   // const transparent_irq_mask_t transparent_irq_mask = ral_transparent_convert_irq_flags_from_ral( irq );
-
   // return ( ral_status_t ) transparent_clear_irq_status( context, transparent_irq_mask );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -476,25 +346,21 @@ extern "C" ral_status_t ral_transparent_clear_irq_status(const void *context, co
 extern "C" ral_status_t ral_transparent_get_and_clear_irq_status(const void *context, ral_irq_t *irq) {
   // ral_status_t      status          = RAL_STATUS_ERROR;
   // transparent_irq_mask_t transparent_irq_mask = TRANSPARENT_IRQ_NONE;
-
   // status = ( ral_status_t ) transparent_get_and_clear_irq_status( context, &transparent_irq_mask );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // if( irq != 0 )
   // {
   //     *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
   // }
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_dio_irq_params(const void *context, const ral_irq_t irq) {
   // const uint16_t transparent_irq = ral_transparent_convert_irq_flags_from_ral( irq );
-
   // return ( ral_status_t ) transparent_set_dio_irq_params( context, TRANSPARENT_IRQ_ALL, transparent_irq,
   // TRANSPARENT_IRQ_NONE,
   //                                                    TRANSPARENT_IRQ_NONE );
@@ -508,7 +374,6 @@ extern "C" ral_status_t ral_transparent_set_rf_freq(const void *context, const u
 
 extern "C" ral_status_t ral_transparent_set_pkt_type(const void *context, const ral_pkt_type_t pkt_type) {
   // transparent_pkt_type_t radio_pkt_type;
-
   // switch( pkt_type )
   // {
   // case RAL_PKT_TYPE_GFSK:
@@ -531,7 +396,6 @@ extern "C" ral_status_t ral_transparent_set_pkt_type(const void *context, const 
   //     return RAL_STATUS_UNKNOWN_VALUE;
   // }
   // }
-
   // return ( ral_status_t ) transparent_set_pkt_type( context, radio_pkt_type );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -539,7 +403,6 @@ extern "C" ral_status_t ral_transparent_set_pkt_type(const void *context, const 
 extern "C" ral_status_t ral_transparent_get_pkt_type(const void *context, ral_pkt_type_t *pkt_type) {
   // ral_status_t      status = RAL_STATUS_ERROR;
   // transparent_pkt_type_t radio_pkt_type;
-
   // status = ( ral_status_t ) transparent_get_pkt_type( context, &radio_pkt_type );
   // if( status == RAL_STATUS_OK )
   // {
@@ -566,7 +429,6 @@ extern "C" ral_status_t ral_transparent_get_pkt_type(const void *context, ral_pk
   //     }
   //     }
   // }
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -574,13 +436,11 @@ extern "C" ral_status_t ral_transparent_get_pkt_type(const void *context, ral_pk
 extern "C" ral_status_t ral_transparent_set_gfsk_mod_params(const void *context, const ral_gfsk_mod_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_mod_params_gfsk_t radio_mod_params = { 0 };
-
   // status = ral_transparent_convert_gfsk_mod_params_from_ral( params, &radio_mod_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return ( ral_status_t ) transparent_set_gfsk_mod_params( context, &radio_mod_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -588,13 +448,11 @@ extern "C" ral_status_t ral_transparent_set_gfsk_mod_params(const void *context,
 extern "C" ral_status_t ral_transparent_set_gfsk_pkt_params(const void *context, const ral_gfsk_pkt_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_pkt_params_gfsk_t radio_pkt_params = { 0 };
-
   // status = ral_transparent_convert_gfsk_pkt_params_from_ral( params, &radio_pkt_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return ( ral_status_t ) transparent_set_gfsk_pkt_params( context, &radio_pkt_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -607,13 +465,11 @@ extern "C" ral_status_t ral_transparent_set_gfsk_pkt_address(const void *context
 extern "C" ral_status_t ral_transparent_set_lora_mod_params(const void *context, const ral_lora_mod_params_t *params) {
   // ral_status_t             status = RAL_STATUS_ERROR;
   // transparent_mod_params_lora_t radio_mod_params;
-
   // status = ral_transparent_convert_lora_mod_params_from_ral( params, &radio_mod_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return ( ral_status_t ) transparent_set_lora_mod_params( context, &radio_mod_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -621,13 +477,11 @@ extern "C" ral_status_t ral_transparent_set_lora_mod_params(const void *context,
 extern "C" ral_status_t ral_transparent_set_lora_pkt_params(const void *context, const ral_lora_pkt_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_pkt_params_lora_t radio_pkt_params = { 0 };
-
   // status = ral_transparent_convert_lora_pkt_params_from_ral( params, &radio_pkt_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return ( ral_status_t ) transparent_set_lora_pkt_params( context, &radio_pkt_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -643,13 +497,11 @@ extern "C" ral_status_t ral_transparent_set_lora_symb_nb_timeout(const void *con
 extern "C" ral_status_t ral_transparent_set_flrc_mod_params(const void *context, const ral_flrc_mod_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_mod_params_flrc_t radio_mod_params = { 0 };
-
   // status = ral_transparent_convert_flrc_mod_params_from_ral( params, &radio_mod_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return ( ral_status_t ) transparent_set_flrc_mod_params( context, &radio_mod_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -657,13 +509,11 @@ extern "C" ral_status_t ral_transparent_set_flrc_mod_params(const void *context,
 extern "C" ral_status_t ral_transparent_set_flrc_pkt_params(const void *context, const ral_flrc_pkt_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_pkt_params_flrc_t radio_pkt_params = { 0 };
-
   // status = ral_transparent_convert_flrc_pkt_params_from_ral( params, &radio_pkt_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return ( ral_status_t ) transparent_set_flrc_pkt_params( context, &radio_pkt_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -672,9 +522,7 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_pkt_status(const void *conte
                                                                ral_gfsk_rx_pkt_status_t *rx_pkt_status) {
   // ral_status_t             status        = RAL_STATUS_ERROR;
   // transparent_pkt_status_gfsk_t sx_pkt_status = { 0 };
-
   // status = ( ral_status_t ) transparent_get_gfsk_pkt_status( context, &sx_pkt_status );
-
   // if( status == RAL_STATUS_OK )
   // {
   //     uint8_t rx_status = 0;
@@ -700,7 +548,6 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_pkt_status(const void *conte
   //     rx_pkt_status->rx_status       = rx_status;
   //     rx_pkt_status->rssi_avg_in_dbm = sx_pkt_status.rssi;
   // }
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -709,9 +556,7 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_status(const void *conte
                                                                ral_lora_rx_pkt_status_t *rx_pkt_status) {
   // ral_status_t             status        = RAL_STATUS_ERROR;
   // transparent_pkt_status_lora_t sx_pkt_status = { 0 };
-
   // status = ( ral_status_t ) transparent_get_lora_pkt_status( context, &sx_pkt_status );
-
   // if( status == RAL_STATUS_OK )
   // {
   //     rx_pkt_status->rssi_pkt_in_dbm        = sx_pkt_status.rssi;
@@ -726,9 +571,7 @@ extern "C" ral_status_t ral_transparent_get_flrc_rx_pkt_status(const void *conte
                                                                ral_flrc_rx_pkt_status_t *rx_pkt_status) {
   // ral_status_t             status;
   // transparent_pkt_status_flrc_t sx_pkt_status;
-
   // status = ( ral_status_t ) transparent_get_flrc_pkt_status( context, &sx_pkt_status );
-
   // if( status == RAL_STATUS_OK )
   // {
   //     rx_pkt_status->rssi_sync_in_dbm = sx_pkt_status.rssi;
@@ -746,10 +589,8 @@ uint32_t ral_transparent_get_lora_time_on_air_in_ms(const ral_lora_pkt_params_t 
                                                     const ral_lora_mod_params_t *mod_p) {
   // transparent_mod_params_lora_t radio_mod_params;
   // transparent_pkt_params_lora_t radio_pkt_params;
-
   // ral_transparent_convert_lora_mod_params_from_ral( mod_p, &radio_mod_params );
   // ral_transparent_convert_lora_pkt_params_from_ral( pkt_p, &radio_pkt_params );
-
   // return transparent_get_lora_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -758,10 +599,8 @@ uint32_t ral_transparent_get_gfsk_time_on_air_in_ms(const ral_gfsk_pkt_params_t 
                                                     const ral_gfsk_mod_params_t *mod_p) {
   // transparent_mod_params_gfsk_t radio_mod_params;
   // transparent_pkt_params_gfsk_t radio_pkt_params;
-
   // ral_transparent_convert_gfsk_mod_params_from_ral( mod_p, &radio_mod_params );
   // ral_transparent_convert_gfsk_pkt_params_from_ral( pkt_p, &radio_pkt_params );
-
   // return transparent_get_gfsk_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -770,10 +609,8 @@ uint32_t ral_transparent_get_flrc_time_on_air_in_ms(const ral_flrc_pkt_params_t 
                                                     const ral_flrc_mod_params_t *mod_p) {
   // transparent_mod_params_flrc_t radio_mod_params;
   // transparent_pkt_params_flrc_t radio_pkt_params;
-
   // ral_transparent_convert_flrc_mod_params_from_ral( mod_p, &radio_mod_params );
   // ral_transparent_convert_flrc_pkt_params_from_ral( pkt_p, &radio_pkt_params );
-
   // return transparent_get_flrc_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -802,19 +639,16 @@ extern "C" ral_status_t ral_transparent_set_flrc_sync_word(const void *context, 
 extern "C" ral_status_t ral_transparent_set_gfsk_crc_params(const void *context, const uint32_t seed,
                                                             const uint32_t polynomial) {
   // ral_status_t status = RAL_STATUS_ERROR;
-
   // status = ( ral_status_t ) transparent_set_gfsk_crc_seed( context, ( uint16_t ) seed );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ( ral_status_t ) transparent_set_gfsk_crc_polynomial( context, ( uint16_t ) polynomial );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -846,59 +680,36 @@ extern "C" ral_status_t ral_transparent_lr_fhss_build_frame(const void *context,
                                                             const ral_lr_fhss_params_t *lr_fhss_params,
                                                             ral_lr_fhss_memory_state_t state, uint16_t hop_sequence_id,
                                                             const uint8_t *payload, uint16_t payload_length) {
-  (void) context;          // Unused parameter
-  (void) state;            // Unused parameter
-  (void) lr_fhss_params;   // Unused parameter
-  (void) hop_sequence_id;  // Unused parameter
-  (void) payload;          // Unused parameter
-  (void) payload_length;   // Unused parameter
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_lr_fhss_handle_hop(const void *context,
                                                            const ral_lr_fhss_params_t *lr_fhss_params,
                                                            ral_lr_fhss_memory_state_t state) {
-  (void) context;         // Unused parameter
-  (void) state;           // Unused parameter
-  (void) lr_fhss_params;  // Unused parameter
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_lr_fhss_handle_tx_done(const void *context,
                                                                const ral_lr_fhss_params_t *lr_fhss_params,
                                                                ral_lr_fhss_memory_state_t state) {
-  (void) context;         // Unused parameter
-  (void) state;           // Unused parameter
-  (void) lr_fhss_params;  // Unused parameter
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_lr_fhss_get_time_on_air_in_ms(const void *context,
                                                                       const ral_lr_fhss_params_t *lr_fhss_params,
                                                                       uint16_t payload_length, uint32_t *time_on_air) {
-  (void) context;         // Unused parameter
-  (void) lr_fhss_params;  // Unused parameter
-  (void) payload_length;  // Unused parameter
-  (void) time_on_air;     // Unused parameter
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_lr_fhss_get_hop_sequence_count(const void *context,
                                                                        const ral_lr_fhss_params_t *lr_fhss_params,
                                                                        unsigned int *hop_sequence_count) {
-  (void) context;             // Unused parameter
-  (void) lr_fhss_params;      // Unused parameter
-  (void) hop_sequence_count;  // Unused parameter
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_lr_fhss_get_bit_delay_in_us(const void *context,
                                                                     const ral_lr_fhss_params_t *params,
                                                                     uint16_t payload_length, uint16_t *delay) {
-  (void) context;         // Unused parameter
-  (void) params;          // Unused parameter
-  (void) payload_length;  // Unused parameter
-  (void) delay;           // Unused parameter
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
@@ -906,25 +717,21 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_cr_crc(const void *conte
                                                                bool *is_crc_present) {
   // ral_status_t             status = RAL_STATUS_ERROR;
   // transparent_lora_ranging_cr_t radio_cr;
-
   // status = ( ral_status_t ) transparent_get_lora_rx_pkt_cr( context, &radio_cr );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ral_transparent_convert_lora_cr_to_ral( radio_cr, cr );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ( ral_status_t ) transparent_get_lora_rx_pkt_crc_present( context, is_crc_present );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -940,7 +747,6 @@ extern "C" ral_status_t ral_transparent_get_tx_consumption_in_ua(const void *con
   // };
   // ral_transparent_bsp_get_reg_mode( context, &reg_mode );
   // ral_transparent_bsp_get_tx_cfg( context, &tx_cfg_input_params, &tx_cfg_output_params );
-
   // return ral_transparent_bsp_get_instantaneous_tx_power_consumption( context, tx_cfg_output_params, reg_mode,
   //                                                               pwr_consumption_in_ua );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -952,7 +758,6 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_consumption_in_ua(const void
                                                                       uint32_t *pwr_consumption_in_ua) {
   // transparent_reg_mod_t radio_reg_mode;
   // ral_transparent_bsp_get_reg_mode( context, &radio_reg_mode );
-
   // return ral_transparent_bsp_get_instantaneous_gfsk_rx_power_consumption( context, radio_reg_mode, rx_boosted,
   //                                                                    pwr_consumption_in_ua );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -963,7 +768,6 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_consumption_in_ua(const void
                                                                       uint32_t *pwr_consumption_in_ua) {
   // transparent_reg_mod_t reg_mode;
   // ral_transparent_bsp_get_reg_mode( context, &reg_mode );
-
   // return ral_transparent_bsp_get_instantaneous_lora_rx_power_consumption( context, reg_mode, bw, rx_boosted,
   //                                                                    pwr_consumption_in_ua );
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -992,513 +796,3 @@ extern "C" ral_status_t ral_transparent_get_lora_cad_det_peak(const void *contex
  * -----------------------------------------------------------------------------
  * --- PRIVATE FUNCTIONS DEFINITION --------------------------------------------
  */
-
-// static uint8_t shift_and_count_trailing_zeros( uint16_t* x )
-// {
-//     uint8_t exponent = 0;
-
-//     if( ( *x & 0x00FF ) == 0 )
-//     {
-//         exponent += 8;
-//         *x >>= 8;
-//     }
-//     if( ( *x & 0x000F ) == 0 )
-//     {
-//         exponent += 4;
-//         *x >>= 4;
-//     }
-//     if( ( *x & 0x0003 ) == 0 )
-//     {
-//         exponent += 2;
-//         *x >>= 2;
-//     }
-//     if( ( *x & 0x0001 ) == 0 )
-//     {
-//         exponent += 1;
-//         *x >>= 1;
-//     }
-
-//     return exponent;
-// }
-
-// transparent_lora_ranging_preamble_len_t ral_transparent_convert_lora_pbl_len_from_ral( const uint16_t
-// preamble_len_in_symb )
-// {
-//     if( preamble_len_in_symb >= 61440 )
-//     {
-//         // 61440 is the maximum preamble size of the TRANSPARENT
-//         return ( transparent_lora_ranging_preamble_len_t ){
-//             .mant = 15,
-//             .exp  = 12,
-//         };
-//     }
-
-//     uint16_t mant = preamble_len_in_symb;
-//     int      exp  = shift_and_count_trailing_zeros( &mant );
-
-//     // This will loop at most 5 times
-//     while( mant > 15 )
-//     {
-//         // Divide by two, rounding up
-//         mant = ( mant + 1 ) >> 1;
-//         exp++;
-//     }
-
-//     return ( transparent_lora_ranging_preamble_len_t ){
-//         .mant = mant,
-//         .exp  = exp,
-//     };
-// }
-
-// ral_status_t ral_transparent_convert_lora_bw_from_radio( const ral_lora_bw_t bw, transparent_lora_bw_t*
-// transparent_bw )
-// {
-//     switch( bw )
-//     {
-//     case RAL_LORA_BW_200_KHZ:
-//         *transparent_bw = TRANSPARENT_LORA_RANGING_BW_200;
-//         break;
-//     case RAL_LORA_BW_400_KHZ:
-//         *transparent_bw = TRANSPARENT_LORA_RANGING_BW_400;
-//         break;
-//     case RAL_LORA_BW_800_KHZ:
-//         *transparent_bw = TRANSPARENT_LORA_RANGING_BW_800;
-//         break;
-//     case RAL_LORA_BW_1600_KHZ:
-//         *transparent_bw = TRANSPARENT_LORA_RANGING_BW_1600;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-//     return RAL_STATUS_OK;
-// }
-
-// ral_status_t ral_transparent_convert_lora_cr_to_ral( const transparent_lora_ranging_cr_t radio_cr, ral_lora_cr_t*
-// ral_cr )
-// {
-//     switch( radio_cr )
-//     {
-//     case TRANSPARENT_LORA_RANGING_CR_4_5:
-//         *ral_cr = RAL_LORA_CR_4_5;
-//         break;
-//     case TRANSPARENT_LORA_RANGING_CR_4_6:
-//         *ral_cr = RAL_LORA_CR_4_6;
-//         break;
-//     case TRANSPARENT_LORA_RANGING_CR_4_7:
-//         *ral_cr = RAL_LORA_CR_4_7;
-//         break;
-//     case TRANSPARENT_LORA_RANGING_CR_4_8:
-//         *ral_cr = RAL_LORA_CR_4_8;
-//         break;
-//     case TRANSPARENT_LORA_RANGING_CR_LI_4_5:
-//         *ral_cr = RAL_LORA_CR_LI_4_5;
-//         break;
-//     case TRANSPARENT_LORA_RANGING_CR_LI_4_6:
-//         *ral_cr = RAL_LORA_CR_LI_4_6;
-//         break;
-//     case TRANSPARENT_LORA_RANGING_CR_LI_4_8:
-//         *ral_cr = RAL_LORA_CR_LI_4_8;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-//     return RAL_STATUS_OK;
-// }
-
-// ral_irq_t ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask_t transparent_irq )
-// {
-//     ral_irq_t ral_irq = RAL_IRQ_NONE;
-
-//     if( ( transparent_irq & TRANSPARENT_IRQ_TX_DONE ) == TRANSPARENT_IRQ_TX_DONE )
-//     {
-//         ral_irq |= RAL_IRQ_TX_DONE;
-//     }
-//     if( ( transparent_irq & TRANSPARENT_IRQ_RX_DONE ) == TRANSPARENT_IRQ_RX_DONE )
-//     {
-//         ral_irq |= RAL_IRQ_RX_DONE;
-//     }
-//     if( ( transparent_irq & TRANSPARENT_IRQ_TIMEOUT ) == TRANSPARENT_IRQ_TIMEOUT )
-//     {
-//         ral_irq |= RAL_IRQ_RX_TIMEOUT;
-//     }
-//     if( ( ( transparent_irq & TRANSPARENT_IRQ_SYNC_WORD_VALID ) == TRANSPARENT_IRQ_SYNC_WORD_VALID ) ||
-//         ( ( transparent_irq & TRANSPARENT_IRQ_HEADER_VALID ) == TRANSPARENT_IRQ_HEADER_VALID ) )
-//     {
-//         ral_irq |= RAL_IRQ_RX_HDR_OK;
-//     }
-//     if( ( ( transparent_irq & TRANSPARENT_IRQ_SYNC_WORD_ERROR ) == TRANSPARENT_IRQ_SYNC_WORD_ERROR ) ||
-//         ( ( transparent_irq & TRANSPARENT_IRQ_HEADER_ERROR ) == TRANSPARENT_IRQ_HEADER_ERROR ) )
-//     {
-//         ral_irq |= RAL_IRQ_RX_HDR_ERROR;
-//     }
-//     if( ( transparent_irq & TRANSPARENT_IRQ_CRC_ERROR ) == TRANSPARENT_IRQ_CRC_ERROR )
-//     {
-//         ral_irq |= RAL_IRQ_RX_CRC_ERROR;
-//     }
-//     if( ( transparent_irq & TRANSPARENT_IRQ_CAD_DONE ) == TRANSPARENT_IRQ_CAD_DONE )
-//     {
-//         ral_irq |= RAL_IRQ_CAD_DONE;
-//     }
-//     if( ( transparent_irq & TRANSPARENT_IRQ_CAD_DETECTED ) == TRANSPARENT_IRQ_CAD_DETECTED )
-//     {
-//         ral_irq |= RAL_IRQ_CAD_OK;
-//     }
-//     if( ( transparent_irq & TRANSPARENT_IRQ_PREAMBLE_DETECTED ) == TRANSPARENT_IRQ_PREAMBLE_DETECTED )
-//     {
-//         ral_irq |= RAL_IRQ_RX_PREAMBLE_DETECTED;
-//     }
-//     return ral_irq;
-// }
-
-// transparent_irq_mask_t ral_transparent_convert_irq_flags_from_ral( ral_irq_t ral_irq )
-// {
-//     transparent_irq_mask_t transparent_irq_mask = TRANSPARENT_IRQ_NONE;
-
-//     if( ( ral_irq & RAL_IRQ_TX_DONE ) == RAL_IRQ_TX_DONE )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_TX_DONE;
-//     }
-//     if( ( ral_irq & RAL_IRQ_RX_DONE ) == RAL_IRQ_RX_DONE )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_RX_DONE;
-//     }
-//     if( ( ral_irq & RAL_IRQ_RX_TIMEOUT ) == RAL_IRQ_RX_TIMEOUT )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_TIMEOUT;
-//     }
-//     if( ( ral_irq & RAL_IRQ_RX_HDR_OK ) == RAL_IRQ_RX_HDR_OK )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_SYNC_WORD_VALID;
-//         transparent_irq_mask |= TRANSPARENT_IRQ_HEADER_VALID;
-//     }
-//     if( ( ral_irq & RAL_IRQ_RX_HDR_ERROR ) == RAL_IRQ_RX_HDR_ERROR )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_SYNC_WORD_ERROR;
-//         transparent_irq_mask |= TRANSPARENT_IRQ_HEADER_ERROR;
-//     }
-//     if( ( ral_irq & RAL_IRQ_RX_CRC_ERROR ) == RAL_IRQ_RX_CRC_ERROR )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_CRC_ERROR;
-//     }
-//     if( ( ral_irq & RAL_IRQ_CAD_DONE ) == RAL_IRQ_CAD_DONE )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_CAD_DONE;
-//     }
-//     if( ( ral_irq & RAL_IRQ_CAD_OK ) == RAL_IRQ_CAD_OK )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_CAD_DETECTED;
-//     }
-//     if( ( ral_irq & RAL_IRQ_RX_PREAMBLE_DETECTED ) == RAL_IRQ_RX_PREAMBLE_DETECTED )
-//     {
-//         transparent_irq_mask |= TRANSPARENT_IRQ_PREAMBLE_DETECTED;
-//     }
-
-//     return transparent_irq_mask;
-// }
-
-// ral_status_t ral_transparent_convert_gfsk_mod_params_from_ral( const ral_gfsk_mod_params_t* ral_mod_params,
-//                                                           transparent_mod_params_gfsk_t*    radio_mod_params )
-// {
-//     ral_status_t status = RAL_STATUS_ERROR;
-
-//     transparent_gfsk_br_bw_t                br_bw_dsb_param;
-//     uint32_t                           bw_dsb_in_hz = ral_mod_params->bw_dsb_in_hz;
-//     transparent_gfsk_flrc_ble_pulse_shape_t pulse_shape;
-
-//     status = ( ral_status_t ) transparent_get_gfsk_br_bw_param( ral_mod_params->br_in_bps, bw_dsb_in_hz,
-//     &br_bw_dsb_param ); if( status != RAL_STATUS_OK )
-//     {
-//         return status;
-//     }
-
-//     switch( ral_mod_params->pulse_shape )
-//     {
-//     case RAL_GFSK_PULSE_SHAPE_OFF:
-//         pulse_shape = TRANSPARENT_GFSK_FLRC_BLE_PULSE_SHAPE_OFF;
-//         break;
-//     case RAL_GFSK_PULSE_SHAPE_BT_05:
-//         pulse_shape = TRANSPARENT_GFSK_FLRC_BLE_PULSE_SHAPE_BT_05;
-//         break;
-//     case RAL_GFSK_PULSE_SHAPE_BT_1:
-//         pulse_shape = TRANSPARENT_GFSK_FLRC_BLE_PULSE_SHAPE_BT_1;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     transparent_gfsk_ble_mod_ind_t mod_ind = 0;
-//     uint32_t                  br      = transparent_get_gfsk_br_in_bps( br_bw_dsb_param );
-//     status = ( ral_status_t ) transparent_get_gfsk_mod_ind_param( br, ral_mod_params->fdev_in_hz, &mod_ind );
-//     if( status != RAL_STATUS_OK )
-//     {
-//         return status;
-//     }
-
-//     *radio_mod_params = ( transparent_mod_params_gfsk_t ){
-//         .br_bw       = br_bw_dsb_param,
-//         .mod_ind     = mod_ind,
-//         .pulse_shape = pulse_shape,
-//     };
-
-//     return RAL_STATUS_OK;
-// }
-
-// ral_status_t ral_transparent_convert_gfsk_pkt_params_from_ral( const ral_gfsk_pkt_params_t* ral_pkt_params,
-//                                                           transparent_pkt_params_gfsk_t*    radio_pkt_params )
-// {
-//     unsigned int sync_word_len_in_bytes = ral_pkt_params->sync_word_len_in_bits / 8;
-
-//     if( ral_pkt_params->sync_word_len_in_bits % 8 != 0 )
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     if( sync_word_len_in_bytes > 5 )
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     radio_pkt_params->sync_word_len   = ( transparent_gfsk_sync_word_len_t ) ( ( sync_word_len_in_bytes - 1 ) << 1 );
-//     radio_pkt_params->match_sync_word = TRANSPARENT_GFSK_FLRC_RX_MATCH_SYNCWORD_1;
-
-//     unsigned int preamble_len_in_nibbles = ral_pkt_params->preamble_len_in_bits / 4;
-//     if( ral_pkt_params->preamble_len_in_bits % 4 != 0 )
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     if( preamble_len_in_nibbles > 8 || preamble_len_in_nibbles == 0 )
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     radio_pkt_params->preamble_len = ( transparent_gfsk_preamble_len_t ) ( ( preamble_len_in_nibbles - 1 ) << 4 );
-
-//     radio_pkt_params->header_type = ( ral_pkt_params->header_type == RAL_GFSK_PKT_FIX_LEN )
-//                                         ? TRANSPARENT_GFSK_FLRC_PKT_FIX_LEN
-//                                         : TRANSPARENT_GFSK_FLRC_PKT_VAR_LEN;
-
-//     switch( ral_pkt_params->header_type )
-//     {
-//     case RAL_GFSK_PKT_FIX_LEN:
-//     {
-//         radio_pkt_params->header_type = TRANSPARENT_GFSK_FLRC_PKT_FIX_LEN;
-//         break;
-//     }
-//     case RAL_GFSK_PKT_VAR_LEN:
-//     case RAL_GFSK_PKT_VAR_LEN_TRANSPARENT_COMP:
-//     {
-//         radio_pkt_params->header_type = TRANSPARENT_GFSK_FLRC_PKT_VAR_LEN;
-//         break;
-//     }
-//     default:
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-//     }
-
-//     radio_pkt_params->pld_len_in_bytes = ral_pkt_params->pld_len_in_bytes;
-
-//     switch( ral_pkt_params->crc_type )
-//     {
-//     case RAL_GFSK_CRC_OFF:
-//         radio_pkt_params->crc_type = TRANSPARENT_GFSK_CRC_OFF;
-//         break;
-//     case RAL_GFSK_CRC_1_BYTE:
-//         radio_pkt_params->crc_type = TRANSPARENT_GFSK_CRC_1_BYTES;
-//         break;
-//     case RAL_GFSK_CRC_2_BYTES:
-//         radio_pkt_params->crc_type = TRANSPARENT_GFSK_CRC_2_BYTES;
-//         break;
-//     case RAL_GFSK_CRC_3_BYTES:
-//         radio_pkt_params->crc_type = TRANSPARENT_GFSK_CRC_3_BYTES;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     radio_pkt_params->dc_free = ( ral_pkt_params->dc_free == RAL_GFSK_DC_FREE_WHITENING )
-//                                     ? TRANSPARENT_GFSK_FLRC_BLE_DC_FREE_ON
-//                                     : TRANSPARENT_GFSK_FLRC_BLE_DC_FREE_OFF;
-
-//     switch( ral_pkt_params->dc_free )
-//     {
-//     case RAL_GFSK_DC_FREE_OFF:
-//     {
-//         radio_pkt_params->dc_free = TRANSPARENT_GFSK_FLRC_BLE_DC_FREE_OFF;
-//         break;
-//     }
-//     case RAL_GFSK_DC_FREE_WHITENING:
-//     case RAL_GFSK_DC_FREE_WHITENING_TRANSPARENT_COMP:
-//     {
-//         radio_pkt_params->dc_free = TRANSPARENT_GFSK_FLRC_BLE_DC_FREE_ON;
-//         break;
-//     }
-//     default:
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-//     }
-
-//     return RAL_STATUS_OK;
-// }
-
-// ral_status_t ral_transparent_convert_lora_mod_params_from_ral( const ral_lora_mod_params_t* ral_mod_params,
-//                                                           transparent_mod_params_lora_t*    radio_mod_params )
-// {
-//     radio_mod_params->sf = ( transparent_lora_sf_t ) ( ral_mod_params->sf << 4 );
-
-//     ral_status_t status = ral_transparent_convert_lora_bw_from_radio( ral_mod_params->bw, &radio_mod_params->bw );
-//     if( status != RAL_STATUS_OK )
-//     {
-//         return status;
-//     }
-
-//     switch( ral_mod_params->cr )
-//     {
-//     case RAL_LORA_CR_4_5:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_4_5;
-//         break;
-//     case RAL_LORA_CR_4_6:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_4_6;
-//         break;
-//     case RAL_LORA_CR_4_7:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_4_7;
-//         break;
-//     case RAL_LORA_CR_4_8:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_4_8;
-//         break;
-//     case RAL_LORA_CR_LI_4_5:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_LI_4_5;
-//         break;
-//     case RAL_LORA_CR_LI_4_6:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_LI_4_6;
-//         break;
-//     case RAL_LORA_CR_LI_4_8:
-//         radio_mod_params->cr = TRANSPARENT_LORA_RANGING_CR_LI_4_8;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     return RAL_STATUS_OK;
-// }
-
-// ral_status_t ral_transparent_convert_lora_pkt_params_from_ral( const ral_lora_pkt_params_t* ral_pkt_params,
-//                                                           transparent_pkt_params_lora_t*    radio_pkt_params )
-// {
-//     radio_pkt_params->preamble_len = ral_transparent_convert_lora_pbl_len_from_ral(
-//     ral_pkt_params->preamble_len_in_symb );
-
-//     switch( ral_pkt_params->header_type )
-//     {
-//     case( RAL_LORA_PKT_EXPLICIT ):
-//     {
-//         radio_pkt_params->header_type = TRANSPARENT_LORA_RANGING_PKT_EXPLICIT;
-//         break;
-//     }
-//     case( RAL_LORA_PKT_IMPLICIT ):
-//     {
-//         radio_pkt_params->header_type = TRANSPARENT_LORA_RANGING_PKT_IMPLICIT;
-//         break;
-//     }
-//     default:
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-//     }
-
-//     radio_pkt_params->pld_len_in_bytes = ral_pkt_params->pld_len_in_bytes;
-//     radio_pkt_params->crc_is_on        = ral_pkt_params->crc_is_on;
-//     radio_pkt_params->invert_iq_is_on  = ral_pkt_params->invert_iq_is_on;
-
-//     return RAL_STATUS_OK;
-// }
-
-// ral_status_t ral_transparent_convert_flrc_mod_params_from_ral( const ral_flrc_mod_params_t* ral_mod_params,
-//                                                           transparent_mod_params_flrc_t*    radio_mod_params )
-// {
-//     ral_status_t status = RAL_STATUS_ERROR;
-
-//     transparent_flrc_br_bw_t                br_bw_dsb_param;
-//     transparent_gfsk_flrc_ble_pulse_shape_t pulse_shape;
-
-//     status = ( ral_status_t ) transparent_get_flrc_br_bw_param( ral_mod_params->br_in_bps,
-//     ral_mod_params->bw_dsb_in_hz,
-//                                                            &br_bw_dsb_param );
-//     if( status != RAL_STATUS_OK )
-//     {
-//         return status;
-//     }
-
-//     switch( ral_mod_params->pulse_shape )
-//     {
-//     case RAL_FLRC_PULSE_SHAPE_OFF:
-//         pulse_shape = TRANSPARENT_GFSK_FLRC_BLE_PULSE_SHAPE_OFF;
-//         break;
-//     case RAL_FLRC_PULSE_SHAPE_BT_05:
-//         pulse_shape = TRANSPARENT_GFSK_FLRC_BLE_PULSE_SHAPE_BT_05;
-//         break;
-//     case RAL_FLRC_PULSE_SHAPE_BT_1:
-//         pulse_shape = TRANSPARENT_GFSK_FLRC_BLE_PULSE_SHAPE_BT_1;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     *radio_mod_params = ( transparent_mod_params_flrc_t ){
-//         .br_bw       = br_bw_dsb_param,
-//         .cr          = ( transparent_flrc_cr_t ) ( ral_mod_params->cr << 1 ),
-//         .pulse_shape = pulse_shape,
-//     };
-
-//     return RAL_STATUS_OK;
-// }
-
-// ral_status_t ral_transparent_convert_flrc_pkt_params_from_ral( const ral_flrc_pkt_params_t* ral_pkt_params,
-//                                                           transparent_pkt_params_flrc_t*    radio_pkt_params )
-// {
-//     unsigned int preamble_len_in_nibbles = ral_pkt_params->preamble_len_in_bits / 4;
-//     if( ral_pkt_params->preamble_len_in_bits % 4 != 0 )
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     if( preamble_len_in_nibbles > 8 || preamble_len_in_nibbles == 0 )
-//     {
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     *radio_pkt_params = ( transparent_pkt_params_flrc_t ){
-//         .preamble_len = ( transparent_gfsk_preamble_len_t ) ( ( preamble_len_in_nibbles - 1 ) << 4 ),
-//         .sync_word_len =
-//             ( ral_pkt_params->sync_word_is_on == true ) ? TRANSPARENT_FLRC_SYNC_WORD_ON :
-//             TRANSPARENT_FLRC_SYNC_WORD_OFF,
-//         .match_sync_word  = TRANSPARENT_GFSK_FLRC_RX_MATCH_SYNCWORD_1,
-//         .header_type      = ral_pkt_params->pld_is_fix ? TRANSPARENT_GFSK_FLRC_PKT_FIX_LEN :
-//         TRANSPARENT_GFSK_FLRC_PKT_VAR_LEN, .pld_len_in_bytes = ral_pkt_params->pld_len_in_bytes, .crc_type         =
-//         TRANSPARENT_FLRC_CRC_OFF,
-//     };
-
-//     switch( ral_pkt_params->crc_type )
-//     {
-//     case RAL_FLRC_CRC_OFF:
-//         radio_pkt_params->crc_type = TRANSPARENT_FLRC_CRC_OFF;
-//         break;
-//     case RAL_FLRC_CRC_2_BYTES:
-//         radio_pkt_params->crc_type = TRANSPARENT_FLRC_CRC_2_BYTES;
-//         break;
-//     case RAL_FLRC_CRC_3_BYTES:
-//         radio_pkt_params->crc_type = TRANSPARENT_FLRC_CRC_3_BYTES;
-//         break;
-//     case RAL_FLRC_CRC_4_BYTES:
-//         radio_pkt_params->crc_type = TRANSPARENT_FLRC_CRC_4_BYTES;
-//         break;
-//     default:
-//         return RAL_STATUS_UNKNOWN_VALUE;
-//     }
-
-//     return RAL_STATUS_OK;
-// }
-
-/* --- EOF ------------------------------------------------------------------ */

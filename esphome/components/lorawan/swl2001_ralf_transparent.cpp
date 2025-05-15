@@ -37,10 +37,12 @@
  * --- DEPENDENCIES ------------------------------------------------------------
  */
 
-// #include "ralf_transparent.h"
-// #include "ral.h"
+#include "esphome/core/log.h"
+
 #include "smtc_modem_core/smtc_ralf/src/ralf_transparent.h"
 #include "smtc_modem_core/smtc_ral/src/ral.h"
+
+#include "swl2001.h"
 
 /*
  * -----------------------------------------------------------------------------
@@ -51,6 +53,8 @@
  * -----------------------------------------------------------------------------
  * --- PRIVATE CONSTANTS -------------------------------------------------------
  */
+
+static const char *const TAG = "lorawan_swll2001_ralf";
 
 /*
  * -----------------------------------------------------------------------------
@@ -175,27 +179,22 @@ extern "C" ral_status_t ralf_transparent_setup_flrc(const ralf_t *radio, const r
   // {
   //     return status;
   // }
-
   // status = ral_set_flrc_mod_params( &radio->ral, &params->mod_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ral_set_flrc_pkt_params( &radio->ral, &params->pkt_params );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ral_set_flrc_crc_params( &radio->ral, params->crc_seed );
   // if( status != RAL_STATUS_OK )
   // {
   //     return status;
   // }
-
   // status = ral_set_flrc_sync_word( &radio->ral, params->sync_word, 4 );
-
   // return status;
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -208,5 +207,3 @@ extern "C" ral_status_t ralf_transparent_setup_lora_cad(const ralf_t *radio, con
  * -----------------------------------------------------------------------------
  * --- PRIVATE FUNCTIONS DEFINITION --------------------------------------------
  */
-
-/* --- EOF ------------------------------------------------------------------ */
