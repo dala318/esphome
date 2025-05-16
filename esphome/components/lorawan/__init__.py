@@ -21,7 +21,10 @@ CONF_LORAWAN_ID = "lorawan_id"
 
 CONF_APP_KEY = "app_key"
 CONF_DEV_EUI = "dev_eui"
-CONF_APP_EUI = "app_eui"
+CONF_JOIN_EUI = "join_eui"
+CONF_GEN_APP_KEY = "gen_app_key"
+CONF_PERIODICAL_UPLINK_DELAY = "periodical_uplink_delay"
+CONF_AFTER_JOIN_DELAY = "after_join_delay"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,9 +39,18 @@ CONFIG_SCHEMA = (
             cv.Required(CONF_DEV_EUI): cv.All(
                 cv.ensure_list(cv.hex_uint8_t), cv.Length(min=8, max=8)
             ),
-            cv.Required(CONF_APP_EUI): cv.All(
+            cv.Required(CONF_JOIN_EUI): cv.All(
                 cv.ensure_list(cv.hex_uint8_t), cv.Length(min=8, max=8)
             ),
+            cv.Optional(CONF_GEN_APP_KEY): cv.All(
+                cv.ensure_list(cv.hex_uint8_t), cv.Length(min=16, max=16)
+            ),
+            cv.Optional(
+                CONF_PERIODICAL_UPLINK_DELAY, default="60s"
+            ): cv.positive_time_period_seconds,
+            cv.Optional(
+                CONF_AFTER_JOIN_DELAY, default="60s"
+            ): cv.positive_time_period_seconds,
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -50,10 +62,11 @@ async def to_code(config):
     cg.add_library(
         "SWL2001",
         None,
-        # "https://github.com/dala318/SWL2001#libraty",  # Better, but don't force update check on every build
+        # "https://github.com/dala318/SWL2001#libraty",  # Add library definition to build from platform.io
+        "https://github.com/dala318/SWL2001#transparent",  # Add transparent radio option on top of library definition
+        # Below specific commits to force library update since ref to branch not always is recognizing new content
         # "https://github.com/dala318/SWL2001#afb8974a883d4415cd3d7fdd57c146433eb8d2f7",  # Without transparent
-        # "https://github.com/dala318/SWL2001#69ae582225c7dc795c2f46f30c074926caf0b61a",  # Before adding scrFilters
-        "https://github.com/dala318/SWL2001#b70d59783f74e4c814cca5edf86209c912e8bd1d",
+        # "https://github.com/dala318/SWL2001#b70d59783f74e4c814cca5edf86209c912e8bd1d",
     )
     cg.add_build_flag("-DTRANSPARENT_RADIO")
 
@@ -64,6 +77,7 @@ async def to_code(config):
     # "RP_VERSION (LoRaWAN Regional Parameter version) must be defined: RP2_101 or RP2_103"
     cg.add_build_flag("-DRP2_101")
 
+    # Copy of section from main makefil in library
     """
     $(call echo_help, " * MODEM_APP=xxx                   : choose which modem application to build:(default is PERIODICAL_UPLINK)")
     $(call echo_help, " *                                  - PERIODICAL_UPLINK")
@@ -103,4 +117,11 @@ async def to_code(config):
 
     cg.add(var.set_app_key(config[CONF_APP_KEY]))
     cg.add(var.set_dev_eui(config[CONF_DEV_EUI]))
-    cg.add(var.set_app_eui(config[CONF_APP_EUI]))
+    cg.add(var.set_join_eui(config[CONF_JOIN_EUI]))
+    if CONF_GEN_APP_KEY in config:
+        cg.add(var.set_gen_app_key(config[CONF_GEN_APP_KEY]))
+    cg.add(
+        var.set_periodicity(
+            config[CONF_PERIODICAL_UPLINK_DELAY], config[CONF_AFTER_JOIN_DELAY]
+        )
+    )

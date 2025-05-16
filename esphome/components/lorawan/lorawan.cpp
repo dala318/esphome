@@ -23,7 +23,16 @@ void LoRaWAN::setup() {
   this->parent_->register_listener(this);
 
   // Set-up the SWL2001 stack
-  swl2001_init(this, this->parent_);
+  keys_t keys;
+  std::copy(this->app_key_.begin(), this->app_key_.end(), keys.app_key);
+  std::copy(this->dev_eui_.begin(), this->dev_eui_.end(), keys.dev_eui);
+  std::copy(this->join_eui_.begin(), this->join_eui_.end(), keys.join_eui);
+  std::copy(this->gen_app_key_.begin(), this->gen_app_key_.end(), keys.gen_app_key);
+  timings_t timings = {
+      .join_delay = this->after_join_delay_,
+      .periodicity = this->periodical_uplink_delay_,
+  };
+  swl2001_init(this, this->parent_, keys, timings);
 }
 
 void LoRaWAN::loop() { swl2001_loop(); }

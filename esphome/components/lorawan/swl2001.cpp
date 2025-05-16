@@ -57,41 +57,24 @@
 
 #define STACK_ID 0
 
-// TODO: All defines below should be replaced by config settings to LoRaWAN Component
-
-// Watchdog counter reload value during sleep (The period must be lower than MCU watchdog period (here 32s))
-#define WATCHDOG_RELOAD_PERIOD_MS 20000
-
-// Periodical uplink alarm delay in seconds
-#ifndef PERIODICAL_UPLINK_DELAY_S
-#define PERIODICAL_UPLINK_DELAY_S 60
-#endif
-
-#ifndef DELAY_FIRST_MSG_AFTER_JOIN
-#define DELAY_FIRST_MSG_AFTER_JOIN 60
-#endif
-
-#define USER_LORAWAN_DEVICE_EUI \
-  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }
-#define USER_LORAWAN_JOIN_EUI \
-  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }
-#define USER_LORAWAN_GEN_APP_KEY \
-  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }
-#define USER_LORAWAN_APP_KEY \
-  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }
-
 // Private constants
-
-// #if !defined( USE_LR11XX_CREDENTIALS )
-static const uint8_t user_dev_eui[8] = USER_LORAWAN_DEVICE_EUI;
-static const uint8_t user_join_eui[8] = USER_LORAWAN_JOIN_EUI;
-static const uint8_t user_gen_app_key[16] = USER_LORAWAN_GEN_APP_KEY;
-static const uint8_t user_app_key[16] = USER_LORAWAN_APP_KEY;
-// #endif
 
 static const char *const TAG = "lorawan_swl2001";
 
 // Private variables
+
+static esphome::lorawan::LoRaWAN *g_lorawan = nullptr;
+static esphome::lora::LoRa *g_lora = nullptr;
+
+// #if !defined( USE_LR11XX_CREDENTIALS )
+static uint8_t user_dev_eui[8] = {0};
+static uint8_t user_join_eui[8] = {0};
+static uint8_t user_gen_app_key[16] = {0};
+static uint8_t user_app_key[16] = {0};
+// #endif
+
+static uint32_t delay_after_join = 0;
+static uint32_t delay_between_uplinks = 0;
 
 static uint8_t rx_payload[SMTC_MODEM_MAX_LORAWAN_PAYLOAD_LENGTH] = {0};  // Buffer for rx payload
 static uint8_t rx_payload_size = 0;                                      // Size of the payload in the rx_payload buffer
@@ -101,15 +84,10 @@ static uint8_t rx_remaining = 0;                                         // Rema
 // static volatile bool user_button_is_press = false;  // Flag for button status
 // static uint32_t uplink_counter = 0;                 // uplink raising counter
 
-static esphome::lorawan::LoRaWAN *g_lorawan = nullptr;
-static esphome::lora::LoRa *g_lora = nullptr;
-
 #if defined(USE_RELAY_TX)
 static smtc_modem_relay_tx_config_t relay_config = {0};
 #endif
-/**
- * @brief Internal credentials
- */
+
 #if defined(USE_LR11XX_CREDENTIALS)
 static uint8_t chip_eui[SMTC_MODEM_EUI_LENGTH] = {0};
 static uint8_t chip_pin[SMTC_MODEM_PIN_LENGTH] = {0};
@@ -120,9 +98,18 @@ void swl2001_event_handler();
 
 // Function definitions
 
-extern "C" void swl2001_init(void *lorawan_component, void *lora_component) {
+extern "C" void swl2001_init(void *lorawan_component, void *lora_component, keys_t keys, timings_t timings) {
   g_lorawan = static_cast<esphome::lorawan::LoRaWAN *>(lorawan_component);
   g_lora = static_cast<esphome::lora::LoRa *>(lora_component);
+
+  memcpy(user_app_key, keys.app_key, sizeof(user_app_key));
+  memcpy(user_dev_eui, keys.dev_eui, sizeof(user_dev_eui));
+  memcpy(user_join_eui, keys.join_eui, sizeof(user_join_eui));
+  memcpy(user_gen_app_key, keys.gen_app_key, sizeof(user_gen_app_key));
+
+  delay_after_join = timings.join_delay;
+  delay_between_uplinks = timings.periodicity;
+
   smtc_modem_init(&swl2001_event_handler);
 }
 
@@ -140,6 +127,7 @@ extern "C" void swl2001_loop() {
   //         send_uplink_counter_on_port( 102 );
   //     }
   // }
+
   // Modem process launch
   uint32_t sleep_time_ms = smtc_modem_run_engine();
 
@@ -163,13 +151,17 @@ extern "C" void swl2001_send_to_radio(const uint8_t *buf, const uint8_t len) { g
 extern "C" uint8_t swl2001_get_from_radio(uint8_t *buf) { return g_lorawan->read_packet(buf); }
 
 extern "C" bool swl2001_set_mode_init() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::INIT)); }
+
 extern "C" bool swl2001_set_mode_wakeup() {
   return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::WAKEUP));
 }
+
 extern "C" bool swl2001_set_mode_sleep() {
   return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::SLEEP));
 }
+
 extern "C" bool swl2001_set_mode_rx() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::RX)); }
+
 extern "C" bool swl2001_set_mode_tx() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::TX)); }
 
 void swl2001_event_handler() {
@@ -184,19 +176,19 @@ void swl2001_event_handler() {
     switch (current_event.event_type) {
       case SMTC_MODEM_EVENT_RESET:
         ESP_LOGI(TAG, "Event received: RESET");
-        // #if !defined( USE_LR11XX_CREDENTIALS )
-        //             // Set user credentials
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_deveui( stack_id, user_dev_eui ) );
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_joineui( stack_id, user_join_eui ) );
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_appkey( stack_id, user_gen_app_key ) );
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_nwkkey( stack_id, user_app_key ) );
-        // #else
-        //             // Get internal credentials
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_get_chip_eui( stack_id, chip_eui ) );
-        //             // SMTC_HAL_TRACE_ARRAY( "CHIP_EUI", chip_eui, SMTC_MODEM_EUI_LENGTH );
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_get_pin( stack_id, chip_pin ) );
-        //             // SMTC_HAL_TRACE_ARRAY( "CHIP_PIN", chip_pin, SMTC_MODEM_PIN_LENGTH );
-        // #endif
+#if !defined(USE_LR11XX_CREDENTIALS)
+        // Set user credentials
+        ASSERT_SMTC_MODEM_RC(smtc_modem_set_nwkkey(stack_id, user_app_key));
+        ASSERT_SMTC_MODEM_RC(smtc_modem_set_deveui(stack_id, user_dev_eui));
+        ASSERT_SMTC_MODEM_RC(smtc_modem_set_joineui(stack_id, user_join_eui));
+        ASSERT_SMTC_MODEM_RC(smtc_modem_set_appkey(stack_id, user_gen_app_key));
+#else
+        // Get internal credentials
+        ASSERT_SMTC_MODEM_RC(smtc_modem_get_chip_eui(stack_id, chip_eui));
+        // SMTC_HAL_TRACE_ARRAY( "CHIP_EUI", chip_eui, SMTC_MODEM_EUI_LENGTH );
+        ASSERT_SMTC_MODEM_RC(smtc_modem_get_pin(stack_id, chip_pin));
+        // SMTC_HAL_TRACE_ARRAY( "CHIP_PIN", chip_pin, SMTC_MODEM_PIN_LENGTH );
+#endif
         //             // Set user region
         //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_region( stack_id, MODEM_EXAMPLE_REGION ) );
         // // Schedule a Join LoRaWAN network
@@ -233,13 +225,13 @@ void swl2001_event_handler() {
       case SMTC_MODEM_EVENT_ALARM:
         ESP_LOGI(TAG, "Event received: ALARM");
         // Restart periodical uplink alarm
-        ASSERT_SMTC_MODEM_RC(smtc_modem_alarm_start_timer(PERIODICAL_UPLINK_DELAY_S));
+        ASSERT_SMTC_MODEM_RC(smtc_modem_alarm_start_timer(delay_between_uplinks));
         break;
 
       case SMTC_MODEM_EVENT_JOINED:
         ESP_LOGI(TAG, "Event received: JOINED");
         // start periodical uplink alarm
-        ASSERT_SMTC_MODEM_RC(smtc_modem_alarm_start_timer(DELAY_FIRST_MSG_AFTER_JOIN));
+        ASSERT_SMTC_MODEM_RC(smtc_modem_alarm_start_timer(delay_after_join));
         break;
 
       case SMTC_MODEM_EVENT_TXDONE:

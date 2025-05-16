@@ -35,14 +35,21 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
   // Config setter functions
+  void set_app_key(const std::vector<uint8_t> &app_key) {
+    std::copy(app_key.begin(), app_key.end(), this->app_key_.begin());
+  }
   void set_dev_eui(const std::vector<uint8_t> &dev_eui) {
     std::copy(dev_eui.begin(), dev_eui.end(), this->dev_eui_.begin());
   }
-  void set_app_eui(const std::vector<uint8_t> &app_eui) {
-    std::copy(app_eui.begin(), app_eui.end(), this->app_eui_.begin());
+  void set_join_eui(const std::vector<uint8_t> &join_eui) {
+    std::copy(join_eui.begin(), join_eui.end(), this->join_eui_.begin());
   }
-  void set_app_key(const std::vector<uint8_t> &app_key) {
-    std::copy(app_key.begin(), app_key.end(), this->app_key_.begin());
+  void set_gen_app_key(const std::vector<uint8_t> &gen_app_key) {
+    std::copy(gen_app_key.begin(), gen_app_key.end(), this->gen_app_key_.begin());
+  }
+  void set_periodicity(uint32_t periodical_uplink_delay, uint32_t after_join_delay) {
+    this->periodical_uplink_delay_ = periodical_uplink_delay;
+    this->after_join_delay_ = after_join_delay;
   }
 
   // Lora interaction functions
@@ -61,7 +68,10 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
  protected:
   std::array<uint8_t, 16> app_key_;
   std::array<uint8_t, 8> dev_eui_;
-  std::array<uint8_t, 8> app_eui_;
+  std::array<uint8_t, 8> join_eui_;
+  std::array<uint8_t, 16> gen_app_key_;
+  uint32_t periodical_uplink_delay_;
+  uint32_t after_join_delay_;
 
   std::deque<RadioPacket> rx_buffer;
 
