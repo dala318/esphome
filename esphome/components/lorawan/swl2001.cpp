@@ -6,6 +6,7 @@
 
 #include "smtc_modem_api/smtc_modem_utilities.h"
 #include "smtc_modem_api/smtc_modem_api.h"
+#include "smtc_modem_api/smtc_modem_relay_api.h"
 #include "smtc_modem_api/smtc_modem_test_api.h"
 #include "smtc_modem_core/radio_planner/src/radio_planner.h"
 #include "smtc_modem_core/smtc_ralf/src/ralf.h"
@@ -76,22 +77,21 @@ static uint8_t user_app_key[16] = {0};
 static uint32_t delay_after_join = 0;
 static uint32_t delay_between_uplinks = 0;
 
+static smtc_modem_region_t region{};
+
 static uint8_t rx_payload[SMTC_MODEM_MAX_LORAWAN_PAYLOAD_LENGTH] = {0};  // Buffer for rx payload
 static uint8_t rx_payload_size = 0;                                      // Size of the payload in the rx_payload buffer
 static smtc_modem_dl_metadata_t rx_metadata = {0};                       // Metadata of downlink
 static uint8_t rx_remaining = 0;                                         // Remaining downlink payload in modem
 
-// static volatile bool user_button_is_press = false;  // Flag for button status
-// static uint32_t uplink_counter = 0;                 // uplink raising counter
-
-#if defined(USE_RELAY_TX)
+// #if defined(USE_RELAY_TX)
 static smtc_modem_relay_tx_config_t relay_config = {0};
-#endif
+// #endif
 
-#if defined(USE_LR11XX_CREDENTIALS)
+// #if defined(USE_LR11XX_CREDENTIALS)
 static uint8_t chip_eui[SMTC_MODEM_EUI_LENGTH] = {0};
 static uint8_t chip_pin[SMTC_MODEM_PIN_LENGTH] = {0};
-#endif
+// #endif
 
 // Forward function declarations
 void swl2001_event_handler();
@@ -109,6 +109,9 @@ extern "C" void swl2001_init(void *lorawan_component, void *lora_component, keys
 
   delay_after_join = timings.join_delay;
   delay_between_uplinks = timings.periodicity;
+
+  // TODO: Add config settings
+  region = smtc_modem_region_t::SMTC_MODEM_REGION_EU_868;
 
   smtc_modem_init(&swl2001_event_handler);
 }
@@ -189,36 +192,31 @@ void swl2001_event_handler() {
         ASSERT_SMTC_MODEM_RC(smtc_modem_get_pin(stack_id, chip_pin));
         // SMTC_HAL_TRACE_ARRAY( "CHIP_PIN", chip_pin, SMTC_MODEM_PIN_LENGTH );
 #endif
-        //             // Set user region
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_set_region( stack_id, MODEM_EXAMPLE_REGION ) );
-        // // Schedule a Join LoRaWAN network
-        // #if defined( USE_RELAY_TX )
-        //             // by default when relay mode is activated , CSMA is also activated by default to at least
-        //             protect the WOR
-        //             // transmission
-        //             // if you want to disable the csma please uncomment the next line
-        //             // ASSERT_SMTC_MODEM_RC(smtc_modem_csma_set_state (stack_id,false));
-        //             relay_config.second_ch_enable = false;
-        //             // The RelayModeActivation field indicates how the end-device SHOULD manage the relay mode.
-        //             relay_config.activation =
-        //                 SMTC_MODEM_RELAY_TX_ACTIVATION_MODE_ENABLE;  // SMTC_MODEM_RELAY_TX_ACTIVATION_MODE_DYNAMIC;
-        //             // number_of_miss_wor_ack_to_switch_in_nosync_mode  field indicates that the
-        //             // relay mode SHALL be restart in no sync mode when it does not receive a WOR ACK frame after
-        //             // number_of_miss_wor_ack_to_switch_in_nosync_mode consecutive uplinks.
-        //             relay_config.number_of_miss_wor_ack_to_switch_in_nosync_mode = 3;
-        //             // smart_level field indicates that the
-        //             // relay mode SHALL be enabled if the end-device does not receive a valid downlink after
-        //             smart_level
-        //             // consecutive uplinks.
-        //             relay_config.smart_level = 8;
-        //             // The BackOff field indicates how the end-device SHALL behave when it does not receive
-        //             // a WOR ACK frame.
-        //             // BackOff Description
-        //             // 0 Always send a LoRaWAN uplink
-        //             // 1..63 Send a LoRaWAN uplink after X WOR frames without a WOR ACK
-        //             relay_config.backoff = 0;  // 4;
-        //             ASSERT_SMTC_MODEM_RC( smtc_modem_relay_tx_enable( stack_id, &relay_config ) );
-        // #endif
+        // Set user region
+        ASSERT_SMTC_MODEM_RC(smtc_modem_set_region(stack_id, region));
+        // Schedule a Join LoRaWAN network
+#if defined(USE_RELAY_TX)
+        // by default when relay mode is activated , CSMA is also activated by default to at least protect the WOR
+        // transmission if you want to disable the csma please uncomment the next line
+        // ASSERT_SMTC_MODEM_RC(smtc_modem_csma_set_state (stack_id,false));
+        relay_config.second_ch_enable = false;
+        // The RelayModeActivation field indicates how the end-device SHOULD manage the relay mode.
+        relay_config.activation = SMTC_MODEM_RELAY_TX_ACTIVATION_MODE_ENABLE;
+        // SMTC_MODEM_RELAY_TX_ACTIVATION_MODE_DYNAMIC;
+        // number_of_miss_wor_ack_to_switch_in_nosync_mode  field indicates that the relay mode SHALL be restart in no
+        // sync mode when it does not receive a WOR ACK frame after number_of_miss_wor_ack_to_switch_in_nosync_mode
+        // consecutive uplinks.
+        relay_config.number_of_miss_wor_ack_to_switch_in_nosync_mode = 3;
+        // smart_level field indicates that the relay mode SHALL be enabled if the end-device does not receive a valid
+        // downlink after smart_level consecutive uplinks.
+        relay_config.smart_level = 8;
+        // The BackOff field indicates how the end-device SHALL behave when it does not receive a WOR ACK frame.
+        // BackOff Description
+        // 0 Always send a LoRaWAN uplink
+        // 1..63 Send a LoRaWAN uplink after X WOR frames without a WOR ACK
+        relay_config.backoff = 0;  // 4;
+        ASSERT_SMTC_MODEM_RC(smtc_modem_relay_tx_enable(stack_id, &relay_config));
+#endif
         ASSERT_SMTC_MODEM_RC(smtc_modem_join_network(stack_id));
         break;
 
@@ -244,30 +242,37 @@ void swl2001_event_handler() {
         ASSERT_SMTC_MODEM_RC(smtc_modem_get_downlink_data(rx_payload, &rx_payload_size, &rx_metadata, &rx_remaining));
         ESP_LOGD(TAG, "Data received on port %u", rx_metadata.fport);
         // SMTC_HAL_TRACE_ARRAY( "Received payload", rx_payload, rx_payload_size );
+        g_lorawan->received_packet(rx_payload, rx_payload_size, rx_metadata.fport, rx_metadata.rssi, rx_metadata.snr);
         break;
 
       case SMTC_MODEM_EVENT_JOINFAIL:
         ESP_LOGW(TAG, "Event received: JOINFAIL");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_ALCSYNC_TIME:
         ESP_LOGI(TAG, "Event received: ALCSync service TIME");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_LINK_CHECK:
         ESP_LOGI(TAG, "Event received: LINK_CHECK");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_CLASS_B_PING_SLOT_INFO:
         ESP_LOGI(TAG, "Event received: CLASS_B_PING_SLOT_INFO");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_CLASS_B_STATUS:
         ESP_LOGI(TAG, "Event received: CLASS_B_STATUS");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_LORAWAN_MAC_TIME:
         ESP_LOGI(TAG, "Event received: LORAWAN MAC TIME");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_LORAWAN_FUOTA_DONE: {
@@ -277,23 +282,28 @@ void swl2001_event_handler() {
         } else {
           ESP_LOGW(TAG, "Event received: FUOTA FAIL");
         }
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
       }
 
       case SMTC_MODEM_EVENT_NO_MORE_MULTICAST_SESSION_CLASS_C:
         ESP_LOGI(TAG, "Event received: MULTICAST CLASS_C STOP");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_NO_MORE_MULTICAST_SESSION_CLASS_B:
         ESP_LOGI(TAG, "Event received: MULTICAST CLASS_B STOP");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_NEW_MULTICAST_SESSION_CLASS_C:
         ESP_LOGI(TAG, "Event received: New MULTICAST CLASS_C ");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_NEW_MULTICAST_SESSION_CLASS_B:
         ESP_LOGI(TAG, "Event received: New MULTICAST CLASS_B");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_FIRMWARE_MANAGEMENT:
@@ -305,30 +315,37 @@ void swl2001_event_handler() {
 
       case SMTC_MODEM_EVENT_STREAM_DONE:
         ESP_LOGI(TAG, "Event received: STREAM_DONE");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_UPLOAD_DONE:
         ESP_LOGI(TAG, "Event received: UPLOAD_DONE");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_DM_SET_CONF:
         ESP_LOGI(TAG, "Event received: DM_SET_CONF");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_MUTE:
         ESP_LOGI(TAG, "Event received: MUTE");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_RELAY_TX_DYNAMIC:  //!< Relay TX dynamic mode has enable or disable the WOR protocol
         ESP_LOGI(TAG, "Event received: RELAY_TX_DYNAMIC");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_RELAY_TX_MODE:  //!< Relay TX activation has been updated
         ESP_LOGI(TAG, "Event received: RELAY_TX_MODE");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_RELAY_TX_SYNC:  //!< Relay TX synchronisation has changed
         ESP_LOGI(TAG, "Event received: RELAY_TX_SYNC");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_RELAY_RX_RUNNING:
@@ -348,10 +365,12 @@ void swl2001_event_handler() {
         //             }
         // #endif  // ENABLE_CSMA_BY_DEFAULT
         // #endif  // ADD_CSMA
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_REGIONAL_DUTY_CYCLE:
         ESP_LOGI(TAG, "Event received: DUTY_CYCLE");
+        ASSERT_NOT_IMPLEMENTED(TAG);
         break;
 
       case SMTC_MODEM_EVENT_TEST_MODE: {

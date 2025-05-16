@@ -23,7 +23,7 @@ struct RadioPacket {
 
 class LoRaWANListener {
  public:
-  virtual void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr);
+  virtual void on_packet(const std::vector<uint8_t> &packet, uint8_t port, float rssi, float snr);
 };
 
 class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListener {
@@ -60,10 +60,11 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   // LoRaWAN interaction functions
   void send_packet(std::vector<uint8_t> &data, uint8_t port = UPLINK_DEFAULT_PORT,
                    bool confirmed = UPLINK_DEFAULT_CONFIRMED);
+  void received_packet(uint8_t *buf, uint8_t len, uint8_t port, float rssi, float snr);
 
   // Listener functions
   void register_listener(LoRaWANListener *listener) { this->listeners_.push_back(listener); }
-  Trigger<std::vector<uint8_t>, float, float> *get_packet_trigger() const { return this->packet_trigger_; };
+  Trigger<std::vector<uint8_t>, uint8_t, float, float> *get_packet_trigger() const { return this->packet_trigger_; };
 
  protected:
   std::array<uint8_t, 16> app_key_;
@@ -76,8 +77,9 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   std::deque<RadioPacket> rx_buffer;
 
   std::vector<LoRaWANListener *> listeners_;
-  void call_listeners_(const std::vector<uint8_t> &packet, float rssi, float snr);
-  Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{new Trigger<std::vector<uint8_t>, float, float>()};
+  void call_listeners_(const std::vector<uint8_t> &packet, uint8_t port, float rssi, float snr);
+  Trigger<std::vector<uint8_t>, uint8_t, float, float> *packet_trigger_{
+      new Trigger<std::vector<uint8_t>, uint8_t, float, float>()};
 };
 
 }  // namespace lorawan

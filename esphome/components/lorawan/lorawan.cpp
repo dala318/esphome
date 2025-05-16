@@ -50,6 +50,11 @@ void LoRaWAN::send_packet(std::vector<uint8_t> &data, uint8_t port, bool confirm
   swl2001_send_to_stack(buf, len, port, confirmed);
 }
 
+void LoRaWAN::received_packet(uint8_t *buf, uint8_t len, uint8_t port, float rssi, float snr) {
+  const std::vector<uint8_t> packet(buf, buf + len);
+  this->call_listeners_(packet, port, rssi, snr);
+}
+
 void LoRaWAN::forward_packet(const uint8_t *buf, const uint8_t len) {
   const std::vector<uint8_t> packet(buf, buf + len);
   this->parent_->send_packet(packet);
@@ -64,6 +69,13 @@ uint8_t LoRaWAN::read_packet(uint8_t *buf) {
   } else {
     return 0u;
   }
+}
+
+void LoRaWAN::call_listeners_(const std::vector<uint8_t> &packet, uint8_t port, float rssi, float snr) {
+  for (auto &listener : this->listeners_) {
+    listener->on_packet(packet, port, rssi, snr);
+  }
+  this->packet_trigger_->trigger(packet, port, rssi, snr);
 }
 
 }  // namespace lorawan
