@@ -125,6 +125,7 @@ extern "C" ral_status_t ralf_transparent_setup_gfsk(const ralf_t *radio, const r
   //     }
   // }
   // return status;
+  ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
@@ -160,6 +161,7 @@ extern "C" ral_status_t ralf_transparent_setup_lora(const ralf_t *radio, const r
   //     return status;
   // }
   // return status;
+  ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
@@ -196,10 +198,12 @@ extern "C" ral_status_t ralf_transparent_setup_flrc(const ralf_t *radio, const r
   // }
   // status = ral_set_flrc_sync_word( &radio->ral, params->sync_word, 4 );
   // return status;
+  ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ralf_transparent_setup_lora_cad(const ralf_t *radio, const ralf_params_lora_cad_t *params) {
+  ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 

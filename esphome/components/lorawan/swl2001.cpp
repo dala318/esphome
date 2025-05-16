@@ -57,6 +57,8 @@
 
 #define STACK_ID 0
 
+// TODO: All defines below should be replaced by config settings to LoRaWAN Component
+
 // Watchdog counter reload value during sleep (The period must be lower than MCU watchdog period (here 32s))
 #define WATCHDOG_RELOAD_PERIOD_MS 20000
 
@@ -96,8 +98,8 @@ static uint8_t rx_payload_size = 0;                                      // Size
 static smtc_modem_dl_metadata_t rx_metadata = {0};                       // Metadata of downlink
 static uint8_t rx_remaining = 0;                                         // Remaining downlink payload in modem
 
-static volatile bool user_button_is_press = false;  // Flag for button status
-static uint32_t uplink_counter = 0;                 // uplink raising counter
+// static volatile bool user_button_is_press = false;  // Flag for button status
+// static uint32_t uplink_counter = 0;                 // uplink raising counter
 
 static esphome::lorawan::LoRaWAN *g_lorawan = nullptr;
 static esphome::lora::LoRa *g_lora = nullptr;
@@ -179,7 +181,6 @@ void swl2001_event_handler() {
   do {
     // Read modem event
     ASSERT_SMTC_MODEM_RC(smtc_modem_get_event(&current_event, &event_pending_count));
-
     switch (current_event.event_type) {
       case SMTC_MODEM_EVENT_RESET:
         ESP_LOGI(TAG, "Event received: RESET");
@@ -362,6 +363,7 @@ void swl2001_event_handler() {
         break;
 
       case SMTC_MODEM_EVENT_TEST_MODE: {
+        ESP_LOGI(TAG, "Event received: TEST_MODE");
         uint8_t status_test_mode = current_event.event_data.test_mode_status.status;
         // #if MODEM_HAL_DBG_TRACE == MODEM_HAL_FEATURE_ON
         //             char* status_name[] = { "SMTC_MODEM_EVENT_TEST_MODE_ENDED",

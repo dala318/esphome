@@ -4,6 +4,11 @@
 extern "C" {
 #endif
 
+#define ASSERT_NOT_IMPLEMENTED(tag) \
+  do { \
+    ESP_LOGW(tag, "Call to not implemented function in %s - %s (line %d):", __FILE__, __func__, __LINE__); \
+  } while (0)
+
 void swl2001_init(void *lorawan_component, void *lora_component);
 void swl2001_loop();
 
