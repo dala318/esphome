@@ -110,11 +110,8 @@ extern "C" ral_status_t ral_transparent_wakeup(const void *context) {
 extern "C" ral_status_t ral_transparent_set_sleep(const void *context, const bool retain_config) {
   // if( retain_config == true )
   // {
-  //     ral_status_t status = ( ral_status_t ) transparent_save_context( context );
-  //     if( status != RAL_STATUS_OK )
-  //     {
-  //         return status;
-  //     }
+  //   ral_status_t status = ( ral_status_t ) transparent_save_context( context );
+  //   if( status != RAL_STATUS_OK ) { return status; }
   // }
   // return ( ral_status_t ) transparent_set_sleep( context, false, retain_config );
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -125,17 +122,17 @@ extern "C" ral_status_t ral_transparent_set_standby(const void *context, ral_sta
   // transparent_standby_cfg_t radio_standby_cfg;
   // switch( standby_cfg )
   // {
-  // case RAL_STANDBY_CFG_RC:
-  // {
+  //   case RAL_STANDBY_CFG_RC:
+  //   {
   //     radio_standby_cfg = TRANSPARENT_STANDBY_CFG_RC;
   //     break;
-  // }
-  // case RAL_STANDBY_CFG_XOSC:
-  // {
+  //   }
+  //   case RAL_STANDBY_CFG_XOSC:
+  //   {
   //     radio_standby_cfg = TRANSPARENT_STANDBY_CFG_XOSC;
   //     break;
-  // }
-  // default:
+  //   }
+  //   default:
   //     return RAL_STATUS_UNKNOWN_VALUE;
   // }
   // return ( ral_status_t ) transparent_set_standby( context, radio_standby_cfg );
@@ -158,22 +155,22 @@ extern "C" ral_status_t ral_transparent_set_tx(const void *context) {
 extern "C" ral_status_t ral_transparent_set_rx(const void *context, const uint32_t timeout_in_ms) {
   // if( timeout_in_ms == RAL_RX_TIMEOUT_CONTINUOUS_MODE )
   // {
-  //     return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0xFFFF );
+  //   return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0xFFFF );
   // }
   // else if( timeout_in_ms == 0 )
   // {
-  //     return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0 );
+  //   return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0 );
   // }
   // else
   // {
-  //     if( timeout_in_ms <= UINT16_MAX )
-  //     {
-  //         return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, timeout_in_ms );
-  //     }
-  //     else
-  //     {
-  //         return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_4000_US, timeout_in_ms >> 2 );
-  //     }
+  //   if( timeout_in_ms <= UINT16_MAX )
+  //   {
+  //     return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, timeout_in_ms );
+  //   }
+  //   else
+  //   {
+  //     return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_4000_US, timeout_in_ms >> 2 );
+  //   }
   // }
   if (swl2001_set_mode_rx()) {
     return RAL_STATUS_OK;
@@ -191,24 +188,24 @@ extern "C" ral_status_t ral_transparent_set_rx_tx_fallback_mode(const void *cont
   // bool fallback_mode_is_fs;
   // switch( ral_fallback_mode )
   // {
-  // case RAL_FALLBACK_STDBY_RC:
-  // {
+  //   case RAL_FALLBACK_STDBY_RC:
+  //   {
   //     fallback_mode_is_fs = false;
   //     break;
-  // }
-  // case RAL_FALLBACK_STDBY_XOSC:
-  // {
+  //   }
+  //   case RAL_FALLBACK_STDBY_XOSC:
+  //   {
   //     return RAL_STATUS_UNSUPPORTED_FEATURE;
-  // }
-  // case RAL_FALLBACK_FS:
-  // {
+  //   }
+  //   case RAL_FALLBACK_FS:
+  //   {
   //     fallback_mode_is_fs = true;
   //     break;
-  // }
-  // default:
-  // {
+  //   }
+  //   default:
+  //   {
   //     return RAL_STATUS_UNKNOWN_VALUE;
-  // }
+  //   }
   // }
   // return ( ral_status_t ) transparent_set_auto_fs( context, fallback_mode_is_fs );
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -222,16 +219,15 @@ extern "C" ral_status_t ral_transparent_stop_timer_on_preamble(const void *conte
 
 extern "C" ral_status_t ral_transparent_set_rx_duty_cycle(const void *context, const uint32_t rx_time_in_ms,
                                                           const uint32_t sleep_time_in_ms) {
-  // if( ( rx_time_in_ms <= UINT16_MAX ) && ( sleep_time_in_ms <= UINT16_MAX ) )
+  // if((rx_time_in_ms <= UINT16_MAX) && (sleep_time_in_ms <= UINT16_MAX))
   // {
-  //     return ( ral_status_t ) transparent_set_rx_duty_cycle( context, TRANSPARENT_TICK_SIZE_1000_US, rx_time_in_ms,
-  //                                                       sleep_time_in_ms );
+  //   return (ral_status_t)transparent_set_rx_duty_cycle(context, TRANSPARENT_TICK_SIZE_1000_US, rx_time_in_ms,
+  //                                                      sleep_time_in_ms);
   // }
   // else
   // {
-  //     return ( ral_status_t ) transparent_set_rx_duty_cycle( context, TRANSPARENT_TICK_SIZE_4000_US, rx_time_in_ms >>
-  //     2,
-  //                                                       sleep_time_in_ms >> 2 );
+  //   return (ral_status_t)transparent_set_rx_duty_cycle(context, TRANSPARENT_TICK_SIZE_4000_US, rx_time_in_ms >> 2,
+  //                                                      sleep_time_in_ms >> 2);
   // }
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -265,12 +261,12 @@ extern "C" ral_status_t ral_transparent_set_tx_cfg(const void *context, const in
                                                    const uint32_t rf_freq_in_hz) {
   // ral_transparent_bsp_tx_cfg_output_params_t      tx_cfg_output_params;
   // const ral_transparent_bsp_tx_cfg_input_params_t tx_cfg_input_params = {
-  //     .freq_in_hz               = rf_freq_in_hz,
-  //     .system_output_pwr_in_dbm = output_pwr_in_dbm,
+  //   .freq_in_hz               = rf_freq_in_hz,
+  //   .system_output_pwr_in_dbm = output_pwr_in_dbm,
   // };
   // ral_transparent_bsp_get_tx_cfg( context, &tx_cfg_input_params, &tx_cfg_output_params );
-  // return ( ral_status_t ) transparent_set_tx_params( context, tx_cfg_output_params.chip_output_pwr_in_dbm_configured,
-  //                                               tx_cfg_output_params.pa_ramp_time );
+  // return (ral_status_t)transparent_set_tx_params(context, tx_cfg_output_params.chip_output_pwr_in_dbm_configured,
+  //                                                tx_cfg_output_params.pa_ramp_time);
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -281,7 +277,7 @@ extern "C" ral_status_t ral_transparent_set_pkt_payload(const void *context, con
   // status = ( ral_status_t ) transparent_set_buffer_base_address( context, 0x00, 0x00 );
   // if( status != RAL_STATUS_OK )
   // {
-  //     return status;
+  //   return status;
   // }
   // status = ( ral_status_t ) transparent_write_buffer( context, 0x00, buffer, size );
   // return status;
@@ -296,42 +292,40 @@ extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uin
   // ral_status_t              status = ( ral_status_t ) transparent_get_rx_buffer_status( context, &sx_buf_status );
   // if( status == RAL_STATUS_OK )
   // {
-  //     transparent_pkt_type_t           pkt_type     = TRANSPARENT_PKT_TYPE_GFSK;
-  //     transparent_lora_pkt_len_modes_t pkt_len_mode = TRANSPARENT_LORA_RANGING_PKT_EXPLICIT;
-  //     status = ( ral_status_t ) transparent_get_pkt_type( context, &pkt_type );
-  //     if( ( status == RAL_STATUS_OK ) && ( pkt_type == TRANSPARENT_PKT_TYPE_LORA ) )
+  //   transparent_pkt_type_t           pkt_type     = TRANSPARENT_PKT_TYPE_GFSK;
+  //   transparent_lora_pkt_len_modes_t pkt_len_mode = TRANSPARENT_LORA_RANGING_PKT_EXPLICIT;
+  //   status = ( ral_status_t ) transparent_get_pkt_type( context, &pkt_type );
+  //   if( ( status == RAL_STATUS_OK ) && ( pkt_type == TRANSPARENT_PKT_TYPE_LORA ) )
+  //   {
+  //       status = ( ral_status_t ) transparent_get_lora_pkt_len_mode( context, &pkt_len_mode );
+  //   }
+  //   if( status == RAL_STATUS_OK )
+  //   {
+  //     if((pkt_type == TRANSPARENT_PKT_TYPE_LORA) && (pkt_len_mode == TRANSPARENT_LORA_RANGING_PKT_IMPLICIT))
   //     {
-  //         status = ( ral_status_t ) transparent_get_lora_pkt_len_mode( context, &pkt_len_mode );
+  //       status = ( ral_status_t ) transparent_get_lora_pkt_len( context, &pkt_len );
+  //     }
+  //     else
+  //     {
+  //       pkt_len = sx_buf_status.pld_len_in_bytes;
+  //     }
+  //     if( size_in_bytes != 0 )
+  //     {
+  //       *size_in_bytes = pkt_len;
   //     }
   //     if( status == RAL_STATUS_OK )
   //     {
-  //         if( ( pkt_type == TRANSPARENT_PKT_TYPE_LORA ) && ( pkt_len_mode == TRANSPARENT_LORA_RANGING_PKT_IMPLICIT )
-  //         )
-  //         {
-  //             status = ( ral_status_t ) transparent_get_lora_pkt_len( context, &pkt_len );
-  //         }
-  //         else
-  //         {
-  //             pkt_len = sx_buf_status.pld_len_in_bytes;
-  //         }
-  //         if( size_in_bytes != 0 )
-  //         {
-  //             *size_in_bytes = pkt_len;
-  //         }
-  //         if( status == RAL_STATUS_OK )
-  //         {
-  //             if( pkt_len <= max_size_in_bytes )
-  //             {
-  //                 status = ( ral_status_t ) transparent_read_buffer( context, sx_buf_status.buffer_start_pointer,
-  //                 buffer,
-  //                                                               pkt_len );
-  //             }
-  //             else
-  //             {
-  //                 status = RAL_STATUS_ERROR;
-  //             }
-  //         }
+  //       if( pkt_len <= max_size_in_bytes )
+  //       {
+  //         status = (ral_status_t)transparent_read_buffer( context, sx_buf_status.buffer_start_pointer,
+  //         buffer, pkt_len);
+  //       }
+  //       else
+  //       {
+  //         status = RAL_STATUS_ERROR;
+  //       }
   //     }
+  //   }
   // }
   // return status;
 
@@ -345,7 +339,7 @@ extern "C" ral_status_t ral_transparent_get_irq_status(const void *context, ral_
   // status = ( ral_status_t ) transparent_get_irq_status( context, &transparent_irq_mask );
   // if( status != RAL_STATUS_OK )
   // {
-  //     return status;
+  //   return status;
   // }
   // *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
   // return status;
@@ -366,11 +360,11 @@ extern "C" ral_status_t ral_transparent_get_and_clear_irq_status(const void *con
   // status = ( ral_status_t ) transparent_get_and_clear_irq_status( context, &transparent_irq_mask );
   // if( status != RAL_STATUS_OK )
   // {
-  //     return status;
+  //   return status;
   // }
   // if( irq != 0 )
   // {
-  //     *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
+  //   *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -380,8 +374,7 @@ extern "C" ral_status_t ral_transparent_get_and_clear_irq_status(const void *con
 extern "C" ral_status_t ral_transparent_set_dio_irq_params(const void *context, const ral_irq_t irq) {
   // const uint16_t transparent_irq = ral_transparent_convert_irq_flags_from_ral( irq );
   // return ( ral_status_t ) transparent_set_dio_irq_params( context, TRANSPARENT_IRQ_ALL, transparent_irq,
-  // TRANSPARENT_IRQ_NONE,
-  //                                                    TRANSPARENT_IRQ_NONE );
+  // TRANSPARENT_IRQ_NONE, TRANSPARENT_IRQ_NONE );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -396,25 +389,25 @@ extern "C" ral_status_t ral_transparent_set_pkt_type(const void *context, const 
   // transparent_pkt_type_t radio_pkt_type;
   // switch( pkt_type )
   // {
-  // case RAL_PKT_TYPE_GFSK:
-  // {
+  //   case RAL_PKT_TYPE_GFSK:
+  //   {
   //     radio_pkt_type = TRANSPARENT_PKT_TYPE_GFSK;
   //     break;
-  // }
-  // case RAL_PKT_TYPE_LORA:
-  // {
+  //   }
+  //   case RAL_PKT_TYPE_LORA:
+  //   {
   //     radio_pkt_type = TRANSPARENT_PKT_TYPE_LORA;
   //     break;
-  // }
-  // case RAL_PKT_TYPE_FLRC:
-  // {
+  //   }
+  //   case RAL_PKT_TYPE_FLRC:
+  //   {
   //     radio_pkt_type = TRANSPARENT_PKT_TYPE_FLRC;
   //     break;
-  // }
-  // default:
-  // {
+  //   }
+  //   default:
+  //   {
   //     return RAL_STATUS_UNKNOWN_VALUE;
-  // }
+  //   }
   // }
   // return ( ral_status_t ) transparent_set_pkt_type( context, radio_pkt_type );
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -427,28 +420,28 @@ extern "C" ral_status_t ral_transparent_get_pkt_type(const void *context, ral_pk
   // status = ( ral_status_t ) transparent_get_pkt_type( context, &radio_pkt_type );
   // if( status == RAL_STATUS_OK )
   // {
-  //     switch( radio_pkt_type )
-  //     {
+  //   switch( radio_pkt_type )
+  //   {
   //     case TRANSPARENT_PKT_TYPE_GFSK:
   //     {
-  //         *pkt_type = RAL_PKT_TYPE_GFSK;
-  //         break;
+  //       *pkt_type = RAL_PKT_TYPE_GFSK;
+  //       break;
   //     }
   //     case TRANSPARENT_PKT_TYPE_LORA:
   //     {
-  //         *pkt_type = RAL_PKT_TYPE_LORA;
-  //         break;
+  //       *pkt_type = RAL_PKT_TYPE_LORA;
+  //       break;
   //     }
   //     case TRANSPARENT_PKT_TYPE_FLRC:
   //     {
-  //         *pkt_type = RAL_PKT_TYPE_FLRC;
-  //         break;
+  //       *pkt_type = RAL_PKT_TYPE_FLRC;
+  //       break;
   //     }
   //     default:
   //     {
-  //         return RAL_STATUS_UNKNOWN_VALUE;
+  //       return RAL_STATUS_UNKNOWN_VALUE;
   //     }
-  //     }
+  //   }
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -459,10 +452,7 @@ extern "C" ral_status_t ral_transparent_set_gfsk_mod_params(const void *context,
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_mod_params_gfsk_t radio_mod_params = { 0 };
   // status = ral_transparent_convert_gfsk_mod_params_from_ral( params, &radio_mod_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return ( ral_status_t ) transparent_set_gfsk_mod_params( context, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -472,10 +462,7 @@ extern "C" ral_status_t ral_transparent_set_gfsk_pkt_params(const void *context,
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_pkt_params_gfsk_t radio_pkt_params = { 0 };
   // status = ral_transparent_convert_gfsk_pkt_params_from_ral( params, &radio_pkt_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return ( ral_status_t ) transparent_set_gfsk_pkt_params( context, &radio_pkt_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -491,10 +478,7 @@ extern "C" ral_status_t ral_transparent_set_lora_mod_params(const void *context,
   // ral_status_t             status = RAL_STATUS_ERROR;
   // transparent_mod_params_lora_t radio_mod_params;
   // status = ral_transparent_convert_lora_mod_params_from_ral( params, &radio_mod_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return ( ral_status_t ) transparent_set_lora_mod_params( context, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -504,10 +488,7 @@ extern "C" ral_status_t ral_transparent_set_lora_pkt_params(const void *context,
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_pkt_params_lora_t radio_pkt_params = { 0 };
   // status = ral_transparent_convert_lora_pkt_params_from_ral( params, &radio_pkt_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return ( ral_status_t ) transparent_set_lora_pkt_params( context, &radio_pkt_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -527,10 +508,7 @@ extern "C" ral_status_t ral_transparent_set_flrc_mod_params(const void *context,
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_mod_params_flrc_t radio_mod_params = { 0 };
   // status = ral_transparent_convert_flrc_mod_params_from_ral( params, &radio_mod_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return ( ral_status_t ) transparent_set_flrc_mod_params( context, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -540,10 +518,7 @@ extern "C" ral_status_t ral_transparent_set_flrc_pkt_params(const void *context,
   // ral_status_t             status           = RAL_STATUS_ERROR;
   // transparent_pkt_params_flrc_t radio_pkt_params = { 0 };
   // status = ral_transparent_convert_flrc_pkt_params_from_ral( params, &radio_pkt_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return ( ral_status_t ) transparent_set_flrc_pkt_params( context, &radio_pkt_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -556,28 +531,28 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_pkt_status(const void *conte
   // status = ( ral_status_t ) transparent_get_gfsk_pkt_status( context, &sx_pkt_status );
   // if( status == RAL_STATUS_OK )
   // {
-  //     uint8_t rx_status = 0;
-  //     rx_status |= ( ( sx_pkt_status.status & TRANSPARENT_PKT_STATUS_PKT_SENT ) == TRANSPARENT_PKT_STATUS_PKT_SENT )
-  //                      ? RAL_RX_STATUS_PKT_SENT
-  //                      : 0x00;
-  //     rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_PKT_RX ) ==
-  //     TRANSPARENT_PKT_STATUS_ERROR_PKT_RX )
-  //                      ? RAL_RX_STATUS_PKT_RECEIVED
-  //                      : 0x00;
-  //     rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_TX_RX_ABORTED ) ==
-  //                    TRANSPARENT_PKT_STATUS_ERROR_TX_RX_ABORTED )
-  //                      ? RAL_RX_STATUS_ABORT_ERROR
-  //                      : 0x00;
-  //     rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_PKT_LEN ) ==
-  //     TRANSPARENT_PKT_STATUS_ERROR_PKT_LEN )
-  //                      ? RAL_RX_STATUS_LENGTH_ERROR
-  //                      : 0x00;
-  //     rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_PKT_CRC ) ==
-  //     TRANSPARENT_PKT_STATUS_ERROR_PKT_CRC )
-  //                      ? RAL_RX_STATUS_CRC_ERROR
-  //                      : 0x00;
-  //     rx_pkt_status->rx_status       = rx_status;
-  //     rx_pkt_status->rssi_avg_in_dbm = sx_pkt_status.rssi;
+  //   uint8_t rx_status = 0;
+  //   rx_status |= ( ( sx_pkt_status.status & TRANSPARENT_PKT_STATUS_PKT_SENT ) == TRANSPARENT_PKT_STATUS_PKT_SENT )
+  //                    ? RAL_RX_STATUS_PKT_SENT
+  //                    : 0x00;
+  //   rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_PKT_RX ) ==
+  //   TRANSPARENT_PKT_STATUS_ERROR_PKT_RX )
+  //                    ? RAL_RX_STATUS_PKT_RECEIVED
+  //                    : 0x00;
+  //   rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_TX_RX_ABORTED ) ==
+  //                  TRANSPARENT_PKT_STATUS_ERROR_TX_RX_ABORTED )
+  //                    ? RAL_RX_STATUS_ABORT_ERROR
+  //                    : 0x00;
+  //   rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_PKT_LEN ) ==
+  //   TRANSPARENT_PKT_STATUS_ERROR_PKT_LEN )
+  //                    ? RAL_RX_STATUS_LENGTH_ERROR
+  //                    : 0x00;
+  //   rx_status |= ( ( sx_pkt_status.errors & TRANSPARENT_PKT_STATUS_ERROR_PKT_CRC ) ==
+  //   TRANSPARENT_PKT_STATUS_ERROR_PKT_CRC )
+  //                    ? RAL_RX_STATUS_CRC_ERROR
+  //                    : 0x00;
+  //   rx_pkt_status->rx_status       = rx_status;
+  //   rx_pkt_status->rssi_avg_in_dbm = sx_pkt_status.rssi;
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -591,9 +566,9 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_status(const void *conte
   // status = ( ral_status_t ) transparent_get_lora_pkt_status( context, &sx_pkt_status );
   // if( status == RAL_STATUS_OK )
   // {
-  //     rx_pkt_status->rssi_pkt_in_dbm        = sx_pkt_status.rssi;
-  //     rx_pkt_status->snr_pkt_in_db          = sx_pkt_status.snr;
-  //     rx_pkt_status->signal_rssi_pkt_in_dbm = sx_pkt_status.rssi;
+  //   rx_pkt_status->rssi_pkt_in_dbm        = sx_pkt_status.rssi;
+  //   rx_pkt_status->snr_pkt_in_db          = sx_pkt_status.snr;
+  //   rx_pkt_status->signal_rssi_pkt_in_dbm = sx_pkt_status.rssi;
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -607,7 +582,7 @@ extern "C" ral_status_t ral_transparent_get_flrc_rx_pkt_status(const void *conte
   // status = ( ral_status_t ) transparent_get_flrc_pkt_status( context, &sx_pkt_status );
   // if( status == RAL_STATUS_OK )
   // {
-  //     rx_pkt_status->rssi_sync_in_dbm = sx_pkt_status.rssi;
+  //   rx_pkt_status->rssi_sync_in_dbm = sx_pkt_status.rssi;
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -670,7 +645,7 @@ extern "C" ral_status_t ral_transparent_set_flrc_sync_word(const void *context, 
                                                            const uint8_t sync_word_len) {
   // if( sync_word_len != 4 )
   // {
-  //     return RAL_STATUS_UNKNOWN_VALUE;
+  //   return RAL_STATUS_UNKNOWN_VALUE;
   // }
   // return ( ral_status_t ) transparent_set_flrc_sync_word( context, 1, sync_word );
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -681,15 +656,9 @@ extern "C" ral_status_t ral_transparent_set_gfsk_crc_params(const void *context,
                                                             const uint32_t polynomial) {
   // ral_status_t status = RAL_STATUS_ERROR;
   // status = ( ral_status_t ) transparent_set_gfsk_crc_seed( context, ( uint16_t ) seed );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ( ral_status_t ) transparent_set_gfsk_crc_polynomial( context, ( uint16_t ) polynomial );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -704,11 +673,11 @@ extern "C" ral_status_t ral_transparent_set_flrc_crc_params(const void *context,
 extern "C" ral_status_t ral_transparent_set_gfsk_whitening_seed(const void *context, const uint16_t seed) {
   // if( seed > UINT8_MAX )
   // {
-  //     return RAL_STATUS_UNKNOWN_VALUE;
+  //   return RAL_STATUS_UNKNOWN_VALUE;
   // }
   // else
   // {
-  //     return ( ral_status_t ) transparent_set_gfsk_ble_whitening_seed( context, ( uint8_t ) seed );
+  //   return ( ral_status_t ) transparent_set_gfsk_ble_whitening_seed( context, ( uint8_t ) seed );
   // }
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -767,20 +736,11 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_cr_crc(const void *conte
   // ral_status_t             status = RAL_STATUS_ERROR;
   // transparent_lora_ranging_cr_t radio_cr;
   // status = ( ral_status_t ) transparent_get_lora_rx_pkt_cr( context, &radio_cr );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_transparent_convert_lora_cr_to_ral( radio_cr, cr );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ( ral_status_t ) transparent_get_lora_rx_pkt_crc_present( context, is_crc_present );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -792,8 +752,8 @@ extern "C" ral_status_t ral_transparent_get_tx_consumption_in_ua(const void *con
   // transparent_reg_mod_t                           reg_mode;
   // ral_transparent_bsp_tx_cfg_output_params_t      tx_cfg_output_params;
   // const ral_transparent_bsp_tx_cfg_input_params_t tx_cfg_input_params = {
-  //     .freq_in_hz               = rf_freq_in_hz,
-  //     .system_output_pwr_in_dbm = output_pwr_in_dbm,
+  //   .freq_in_hz               = rf_freq_in_hz,
+  //   .system_output_pwr_in_dbm = output_pwr_in_dbm,
   // };
   // ral_transparent_bsp_get_reg_mode( context, &reg_mode );
   // ral_transparent_bsp_get_tx_cfg( context, &tx_cfg_input_params, &tx_cfg_output_params );

@@ -78,51 +78,25 @@ static const char *const TAG = "lorawan_swll2001_ralf";
 
 extern "C" ral_status_t ralf_transparent_setup_gfsk(const ralf_t *radio, const ralf_params_gfsk_t *params) {
   // ral_status_t status = ral_set_pkt_type( &radio->ral, RAL_PKT_TYPE_GFSK );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_rf_freq( &radio->ral, params->rf_freq_in_hz );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_tx_cfg( &radio->ral, params->output_pwr_in_dbm, params->rf_freq_in_hz );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_gfsk_mod_params( &radio->ral, &params->mod_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_gfsk_pkt_params( &radio->ral, &params->pkt_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
+  // if( status != RAL_STATUS_OK ) { return status; }
+  // if (params->pkt_params.crc_type != RAL_GFSK_CRC_OFF) {
+  //   status = ral_set_gfsk_crc_params(&radio->ral, params->crc_seed, params->crc_polynomial);
+  //   if (status != RAL_STATUS_OK) { return status; }
   // }
-  // if( params->pkt_params.crc_type != RAL_GFSK_CRC_OFF )
-  // {
-  //     status = ral_set_gfsk_crc_params( &radio->ral, params->crc_seed, params->crc_polynomial );
-  //     if( status != RAL_STATUS_OK )
-  //     {
-  //         return status;
-  //     }
-  // }
-  // status =
-  //     ral_set_gfsk_sync_word( &radio->ral, params->sync_word, ( params->pkt_params.sync_word_len_in_bits + 7 ) / 8 );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
-  // if( params->pkt_params.dc_free != RAL_GFSK_DC_FREE_OFF )
-  // {
-  //     status = ral_set_gfsk_whitening_seed( &radio->ral, params->whitening_seed );
-  //     if( status != RAL_STATUS_OK )
-  //     {
-  //         return status;
-  //     }
+  // status = ral_set_gfsk_sync_word(&radio->ral, params->sync_word, (params->pkt_params.sync_word_len_in_bits + 7) /
+  // 8);
+  // if (status != RAL_STATUS_OK) { return status; }
+  // if (params->pkt_params.dc_free != RAL_GFSK_DC_FREE_OFF) {
+  //   status = ral_set_gfsk_whitening_seed(&radio->ral, params->whitening_seed);
+  //   if (status != RAL_STATUS_OK) { return status; }
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -131,35 +105,17 @@ extern "C" ral_status_t ralf_transparent_setup_gfsk(const ralf_t *radio, const r
 
 extern "C" ral_status_t ralf_transparent_setup_lora(const ralf_t *radio, const ralf_params_lora_t *params) {
   // ral_status_t status = ral_set_pkt_type( &radio->ral, RAL_PKT_TYPE_LORA );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_rf_freq( &radio->ral, params->rf_freq_in_hz );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_tx_cfg( &radio->ral, params->output_pwr_in_dbm, params->rf_freq_in_hz );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_lora_mod_params( &radio->ral, &params->mod_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_lora_pkt_params( &radio->ral, &params->pkt_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_lora_sync_word( &radio->ral, params->sync_word );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -167,35 +123,17 @@ extern "C" ral_status_t ralf_transparent_setup_lora(const ralf_t *radio, const r
 
 extern "C" ral_status_t ralf_transparent_setup_flrc(const ralf_t *radio, const ralf_params_flrc_t *params) {
   // ral_status_t status = ral_set_pkt_type( &radio->ral, RAL_PKT_TYPE_FLRC );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_rf_freq( &radio->ral, params->rf_freq_in_hz );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_tx_cfg( &radio->ral, params->output_pwr_in_dbm, params->rf_freq_in_hz );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_flrc_mod_params( &radio->ral, &params->mod_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_flrc_pkt_params( &radio->ral, &params->pkt_params );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_flrc_crc_params( &radio->ral, params->crc_seed );
-  // if( status != RAL_STATUS_OK )
-  // {
-  //     return status;
-  // }
+  // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_set_flrc_sync_word( &radio->ral, params->sync_word, 4 );
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);

@@ -1,25 +1,47 @@
+#include "esphome/core/application.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
+#include "esphome/core/preferences.h"
 
 #include "smtc_modem_hal/smtc_modem_hal.h"
 
 #include "swl2001.h"
 
+#define MAX_EEPROM_SIZE 255u
+
 static const char *const TAG = "lorawan_swll2001_ral";
+
+// Have to set the EEPROM buffers to a maximum theretical value since the type definitions of originating structs in
+// SWL2001 are private and the constructor of the ESPPreferenceObject does not allow dynamic size.
+esphome::ESPPreferenceObject pref_modem_ =
+    esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A1);
+esphome::ESPPreferenceObject pref_key_modem_ =
+    esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A2);
+esphome::ESPPreferenceObject pref_lorawan_stack_ =
+    esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A3);
+esphome::ESPPreferenceObject pref_fuota_ =
+    esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A4);
+esphome::ESPPreferenceObject pref_store_and_forward_ =
+    esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A5);
+esphome::ESPPreferenceObject pref_secure_element_ =
+    esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A6);
 
 /* ------------ Reset management ------------*/
 
 extern "C" void smtc_modem_hal_reset_mcu(void) {
-  // hal_mcu_reset( );
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  // hal_mcu_reset();
+  ESP_LOGI(TAG, "Resetting the device on request from LoRaWAN stack");
+  esphome::delay(100);  // NOLINT
+  esphome::App.safe_reboot();
 }
 
 /* ------------ Watchdog management ------------*/
 
 extern "C" void smtc_modem_hal_reload_wdog(void) {
-  // hal_watchdog_reload( );
+  // hal_watchdog_reload();
   ASSERT_NOT_IMPLEMENTED(TAG);
+  // Likely not needed as the MCU watchdog is handeled in the main loop
 }
 
 /* ------------ Time management ------------*/
@@ -29,7 +51,7 @@ extern "C" uint32_t smtc_modem_hal_get_time_in_s(void) { return esphome::millis(
 extern "C" uint32_t smtc_modem_hal_get_time_in_ms() { return esphome::millis(); }
 
 extern "C" void smtc_modem_hal_set_offset_to_test_wrapping(const uint32_t offset_to_test_wrapping) {
-  // hal_rtc_set_offset_to_test_wrapping( offset_to_test_wrapping );
+  // hal_rtc_set_offset_to_test_wrapping(offset_to_test_wrapping);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
@@ -37,27 +59,27 @@ extern "C" void smtc_modem_hal_set_offset_to_test_wrapping(const uint32_t offset
 
 extern "C" void smtc_modem_hal_start_timer(const uint32_t milliseconds, void (*callback)(void *context),
                                            void *context) {
-  // hal_lp_timer_start( HAL_LP_TIMER_ID_1, milliseconds,
-  //                     &( hal_lp_timer_irq_t ) { .context = context, .callback = callback } );
+  // hal_lp_timer_start(HAL_LP_TIMER_ID_1, milliseconds,
+  //                     &(hal_lp_timer_irq_t) { .context = context, .callback = callback });
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
 extern "C" void smtc_modem_hal_stop_timer(void) {
-  // hal_lp_timer_stop( HAL_LP_TIMER_ID_1 );
+  // hal_lp_timer_stop(HAL_LP_TIMER_ID_1);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
 /* ------------ IRQ management ------------*/
 
 extern "C" void smtc_modem_hal_disable_modem_irq(void) {
-  // hal_gpio_irq_disable( );
-  // hal_lp_timer_irq_disable( HAL_LP_TIMER_ID_1 );
+  // hal_gpio_irq_disable();
+  // hal_lp_timer_irq_disable(HAL_LP_TIMER_ID_1);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
 extern "C" void smtc_modem_hal_enable_modem_irq(void) {
-  // hal_gpio_irq_enable( );
-  // hal_lp_timer_irq_enable( HAL_LP_TIMER_ID_1 );
+  // hal_gpio_irq_enable();
+  // hal_lp_timer_irq_enable(HAL_LP_TIMER_ID_1);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
@@ -65,75 +87,125 @@ extern "C" void smtc_modem_hal_enable_modem_irq(void) {
 
 extern "C" void smtc_modem_hal_context_restore(const modem_context_type_t ctx_type, uint32_t offset, uint8_t *buffer,
                                                const uint32_t size) {
-  // Offset is only used for fuota and store and forward purpose and for multistack features. To avoid ram consumption
-  // the use of hal_flash_read_modify_write is only done in these cases
-  // switch( ctx_type )
-  // {
-  // case CONTEXT_MODEM:
-  //     hal_eeprom_read_buffer( ADDR_EEPROM_MODEM_CONTEXT_OFFSET, buffer, size );
-  //     break;
-  // case CONTEXT_KEY_MODEM:
-  //     hal_eeprom_read_buffer( ADDR_EEPROM_MODEM_KEY_CONTEXT_OFFSET, buffer, size );
-  //     break;
-  // case CONTEXT_LORAWAN_STACK:
-  //     hal_eeprom_read_buffer( ADDR_EEPROM_LORAWAN_CONTEXT_OFFSET + offset, buffer, size );
-  //     break;
-  // case CONTEXT_FUOTA:
-  //     // no fuota example on stm32l0
-  //     break;
-  // case CONTEXT_STORE_AND_FORWARD:
-  //     // no store and fw example on stm32l0
-  //     break;
-  // case CONTEXT_SECURE_ELEMENT:
-  //     hal_eeprom_read_buffer( ADDR_EEPROM_SECURE_ELEMENT_CONTEXT_OFFSET, buffer, size );
-  //     break;
-  // default:
-  //     mcu_panic( );
-  //     break;
-  // }
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  using namespace esphome;
+
+  // Offset is only used for fuota and store and forward purpose and for multistack features.
+  if (offset != 0) {
+    ESP_LOGE(TAG, "Offset support is not implemented in EEPROM reading");
+    return;
+  }
+
+  uint8_t read_buf[MAX_EEPROM_SIZE];
+  switch (ctx_type) {
+    case CONTEXT_MODEM:
+      if (!pref_modem_.load(read_buf)) {
+        ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      }
+      memcpy(buffer, read_buf, size);
+      break;
+    case CONTEXT_KEY_MODEM:
+      if (!pref_key_modem_.load(read_buf)) {
+        ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      }
+      memcpy(buffer, read_buf, size);
+      break;
+    case CONTEXT_LORAWAN_STACK:
+      if (!pref_lorawan_stack_.load(read_buf)) {
+        ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      }
+      memcpy(buffer, read_buf, size);
+      break;
+    case CONTEXT_FUOTA:
+      // no fuota example on stm32l0
+      ASSERT_NOT_IMPLEMENTED(TAG);
+      // if (!pref_fuota_.load(read_buf)) {
+      //   ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      // }
+      // memcpy(buffer, read_buf, size);
+      break;
+    case CONTEXT_STORE_AND_FORWARD:
+      if (!pref_store_and_forward_.load(read_buf)) {
+        ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      }
+      memcpy(buffer, read_buf, size);
+      break;
+    case CONTEXT_SECURE_ELEMENT:
+      if (!pref_secure_element_.load(read_buf)) {
+        ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      }
+      memcpy(buffer, read_buf, size);
+      break;
+    default:
+      // mcu_panic();
+      ESP_LOGE(TAG, "Invalid context type");
+      break;
+  }
 }
 
 extern "C" void smtc_modem_hal_context_store(const modem_context_type_t ctx_type, uint32_t offset,
                                              const uint8_t *buffer, const uint32_t size) {
-  // Offset is only used for fuota and store and forward purpose and for multistack features. To avoid ram consumption
-  // the use of hal_flash_read_modify_write is only done in these cases
-  // switch( ctx_type )
-  // {
-  // case CONTEXT_MODEM:
-  //     hal_eeprom_write_buffer( ADDR_EEPROM_MODEM_CONTEXT_OFFSET, buffer, size );
-  //     break;
-  // case CONTEXT_KEY_MODEM:
-  //     hal_eeprom_write_buffer( ADDR_EEPROM_MODEM_KEY_CONTEXT_OFFSET, buffer, size );
-  //     break;
-  // case CONTEXT_LORAWAN_STACK:
-  //     hal_eeprom_write_buffer( ADDR_EEPROM_LORAWAN_CONTEXT_OFFSET + offset, buffer, size );
-  //     break;
-  // case CONTEXT_FUOTA:
-  //     // no fuota example on stm32l0
-  //     break;
-  // case CONTEXT_STORE_AND_FORWARD:
-  //     // no store and fw example on stm32l0
-  //     break;
-  // case CONTEXT_SECURE_ELEMENT:
-  //     hal_eeprom_write_buffer( ADDR_EEPROM_SECURE_ELEMENT_CONTEXT_OFFSET, buffer, size );
-  //     break;
-  // default:
-  //     mcu_panic( );
-  //     break;
-  // }
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  using namespace esphome;
+
+  // Offset is only used for fuota and store and forward purpose and for multistack features.
+  if (offset != 0) {
+    ESP_LOGE(TAG, "Offset support is not implemented in EEPROM writing");
+    return;
+  }
+
+  uint8_t write_buf[MAX_EEPROM_SIZE];
+  switch (ctx_type) {
+    case CONTEXT_MODEM:
+      memcpy(write_buf, buffer, size);
+      if (!pref_modem_.save(write_buf)) {
+        ESP_LOGE(TAG, "Failed to store data to EEPROM");
+      }
+      break;
+    case CONTEXT_KEY_MODEM:
+      memcpy(write_buf, buffer, size);
+      if (!pref_key_modem_.save(write_buf)) {
+        ESP_LOGE(TAG, "Failed to store data to EEPROM");
+      }
+      break;
+    case CONTEXT_LORAWAN_STACK:
+      memcpy(write_buf, buffer, size);
+      if (!pref_lorawan_stack_.save(write_buf)) {
+        ESP_LOGE(TAG, "Failed to store data to EEPROM");
+      }
+      break;
+    case CONTEXT_FUOTA:
+      memcpy(write_buf, buffer, size);
+      if (!pref_fuota_.save(write_buf)) {
+        ESP_LOGE(TAG, "Failed to store data to EEPROM");
+      }
+      break;
+    case CONTEXT_STORE_AND_FORWARD:
+      memcpy(write_buf, buffer, size);
+      if (!pref_store_and_forward_.save(write_buf)) {
+        ESP_LOGE(TAG, "Failed to store data to EEPROM");
+      }
+      break;
+    case CONTEXT_SECURE_ELEMENT:
+      memcpy(write_buf, buffer, size);
+      if (!pref_secure_element_.save(write_buf)) {
+        ESP_LOGE(TAG, "Failed to store data to EEPROM");
+      }
+      break;
+    default:
+      // mcu_panic();
+      ESP_LOGE(TAG, "Invalid context type");
+      break;
+  }
 }
 
 extern "C" void smtc_modem_hal_context_flash_pages_erase(const modem_context_type_t ctx_type, uint32_t offset,
                                                          uint8_t nb_page) {
-  // switch( ctx_type )
+  // switch(ctx_type)
   // {
   // case CONTEXT_STORE_AND_FORWARD:
-  //     hal_flash_erase_page( ADDR_FLASH_STORE_AND_FORWARD + offset, nb_page );
+  //     hal_flash_erase_page(ADDR_FLASH_STORE_AND_FORWARD + offset, nb_page);
   //     break;
   // default:
-  //     mcu_panic( );
+  //     mcu_panic();
   //     break;
   // };
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -142,15 +214,15 @@ extern "C" void smtc_modem_hal_context_flash_pages_erase(const modem_context_typ
 /* ------------ Crashlog management ------------*/
 
 extern "C" void smtc_modem_hal_crashlog_store(const uint8_t *crash_string, uint8_t crash_string_length) {
-  // crashlog_length_noinit = MIN( crash_string_length, CRASH_LOG_SIZE );
-  // memcpy( crashlog_buff_noinit, crash_string, crashlog_length_noinit );
+  // crashlog_length_noinit = MIN(crash_string_length, CRASH_LOG_SIZE);
+  // memcpy(crashlog_buff_noinit, crash_string, crashlog_length_noinit);
   // crashlog_available_noinit = true;
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
 extern "C" void smtc_modem_hal_crashlog_restore(uint8_t *crash_string, uint8_t *crash_string_length) {
-  // *crash_string_length = ( crashlog_length_noinit > CRASH_LOG_SIZE ) ? CRASH_LOG_SIZE : crashlog_length_noinit;
-  // memcpy( crash_string, crashlog_buff_noinit, *crash_string_length );
+  // *crash_string_length = (crashlog_length_noinit > CRASH_LOG_SIZE) ? CRASH_LOG_SIZE : crashlog_length_noinit;
+  // memcpy(crash_string, crashlog_buff_noinit, *crash_string_length);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
@@ -171,14 +243,14 @@ extern "C" bool smtc_modem_hal_crashlog_get_status(void) {
 
 extern "C" void smtc_modem_hal_on_panic(uint8_t *func, uint32_t line, const char *fmt, ...) {
   // uint8_t out_buff[255] = { 0 };
-  // uint8_t out_len       = snprintf( ( char* ) out_buff, sizeof( out_buff ), "%s:%lu ", func, line );
+  // uint8_t out_len       = snprintf((char*) out_buff, sizeof(out_buff), "%s:%lu ", func, line);
   // va_list args;
-  // va_start( args, fmt );
-  // out_len += vsprintf( ( char* ) &out_buff[out_len], fmt, args );
-  // va_end( args );
-  // smtc_modem_hal_crashlog_store( out_buff, out_len );
-  // SMTC_HAL_TRACE_ERROR( "Modem panic: %s\n", out_buff );
-  // smtc_modem_hal_reset_mcu( );
+  // va_start(args, fmt);
+  // out_len += vsprintf((char*) &out_buff[out_len], fmt, args);
+  // va_end(args);
+  // smtc_modem_hal_crashlog_store(out_buff, out_len);
+  // SMTC_HAL_TRACE_ERROR("Modem panic: %s\n", out_buff);
+  // smtc_modem_hal_reset_mcu();
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
@@ -194,7 +266,7 @@ extern "C" void smtc_modem_hal_irq_config_radio_irq(void (*callback)(void *conte
   // radio_dio_irq.pin      = RADIO_DIOX;
   // radio_dio_irq.callback = callback;
   // radio_dio_irq.context  = context;
-  // hal_gpio_irq_attach( &radio_dio_irq );
+  // hal_gpio_irq_attach(&radio_dio_irq);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
@@ -210,7 +282,7 @@ extern "C" void smtc_modem_hal_stop_radio_tcxo(void) {
 
 extern "C" uint32_t smtc_modem_hal_get_radio_tcxo_startup_delay_ms(void) {
   // Tcxo is present on LR1110 and LR1120 evk boards, LR1121 ref board does not have tcxo but only 32MHz xtal
-  // #if defined( LR11XX ) && !defined( LR1121 )
+  // #if defined(LR11XX) && !defined(LR1121)
   //     return 5;
   // #else
   //     return 0;
@@ -220,8 +292,8 @@ extern "C" uint32_t smtc_modem_hal_get_radio_tcxo_startup_delay_ms(void) {
 }
 
 extern "C" void smtc_modem_hal_set_ant_switch(bool is_tx_on) {
-  // #if defined( SX127X )
-  //     hal_gpio_set_value( RADIO_ANTENNA_SWITCH, ( is_tx_on == true ) ? 1 : 0 );
+  // #if defined(SX127X)
+  //     hal_gpio_set_value(RADIO_ANTENNA_SWITCH, (is_tx_on == true) ? 1 : 0);
   // #endif
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
@@ -239,7 +311,7 @@ extern "C" uint8_t smtc_modem_hal_get_battery_level(void) {
 }
 
 extern "C" int8_t smtc_modem_hal_get_board_delay_ms(void) {
-  // #if defined( LR1121 )
+  // #if defined(LR1121)
   //     return 2;
   // #else
   //     return 1;
@@ -252,9 +324,9 @@ extern "C" int8_t smtc_modem_hal_get_board_delay_ms(void) {
 
 extern "C" void smtc_modem_hal_print_trace(const char *fmt, ...) {
   // va_list args;
-  // va_start( args, fmt );
-  // hal_trace_print( fmt, args );
-  // va_end( args );
+  // va_start(args, fmt);
+  // hal_trace_print(fmt, args);
+  // va_end(args);
   ASSERT_NOT_IMPLEMENTED(TAG);
 }
 
@@ -319,7 +391,7 @@ extern "C" uint16_t smtc_modem_hal_store_and_forward_get_number_of_pages(void) {
 }
 
 extern "C" uint16_t smtc_modem_hal_flash_get_page_size(void) {
-  // return hal_flash_get_page_size( );
+  // return hal_flash_get_page_size();
   ASSERT_NOT_IMPLEMENTED(TAG);
   return 0;
 }
