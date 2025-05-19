@@ -1,5 +1,8 @@
+// This file is a modifies copy from SWL2001 library:
+// https://github.com/Lora-net/SWL2001.git
+
 /**
- * @file      ral_transparent.c
+ * @file      swl2001_ral_transparent.c
  *
  * @brief     Radio abstraction layer definition
  *
