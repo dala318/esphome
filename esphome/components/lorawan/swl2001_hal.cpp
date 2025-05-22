@@ -51,16 +51,22 @@ static const char *const TAG = "lorawan_swll2001_ral";
 
 // Have to set the EEPROM buffers to a maximum theretical value since the type definitions of originating structs in
 // SWL2001 are private and the constructor of the ESPPreferenceObject does not allow dynamic size.
+// modem_ctx_t
 esphome::ESPPreferenceObject pref_modem_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A1);
+// modem_key_ctx_t
 esphome::ESPPreferenceObject pref_key_modem_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A2);
+// lr1_mac_nvm_context_t
 esphome::ESPPreferenceObject pref_lorawan_stack_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A3);
+// Trickier, seem to read/write individual bytes with an offset
 esphome::ESPPreferenceObject pref_fuota_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A4);
+// Maybe store_and_forward_flash_data_t
 esphome::ESPPreferenceObject pref_store_and_forward_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A5);
+// lr11xx_ce_context_nvm_t (or) soft_se_context_nvm_t
 esphome::ESPPreferenceObject pref_secure_element_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A6);
 
@@ -130,6 +136,8 @@ extern "C" void smtc_modem_hal_context_restore(const modem_context_type_t ctx_ty
   if (offset != 0) {
     ESP_LOGE(TAG, "Offset support is not implemented in EEPROM reading");
     return;
+    // Actually it could be, seem the offset is used for offset within the page, not page number.
+    // But offset seem to be able to be fairly large so several pages might be needed anyway.
   }
 
   uint8_t read_buf[MAX_EEPROM_SIZE];
