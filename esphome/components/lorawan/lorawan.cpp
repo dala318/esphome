@@ -55,6 +55,20 @@ void LoRaWAN::received_packet(uint8_t *buf, uint8_t len, uint8_t port, float rss
   this->call_listeners_(packet, port, rssi, snr);
 }
 
+uint8_t LoRaWAN::get_battery_level() {
+  if (this->battery_sensor_ != nullptr) {
+    float battery_level = this->battery_sensor_->state;
+    if (battery_level < this->battery_min_) {
+      battery_level = this->battery_min_;
+    } else if (battery_level > this->battery_max_) {
+      battery_level = this->battery_max_;
+    }
+    return static_cast<uint8_t>(
+        roundf((battery_level - this->battery_min_) / (this->battery_max_ - this->battery_min_) * 254.0f));
+  }
+  return 255u;  // No battery sensor configured
+}
+
 void LoRaWAN::forward_packet(const uint8_t *buf, const uint8_t len) {
   const std::vector<uint8_t> packet(buf, buf + len);
   this->parent_->send_packet(packet);

@@ -167,6 +167,8 @@ extern "C" bool swl2001_set_mode_rx() { return ASSERT_LORA_STATUS(g_lora->set_mo
 
 extern "C" bool swl2001_set_mode_tx() { return ASSERT_LORA_STATUS(g_lora->set_mode(esphome::lora::LoRaMode::TX)); }
 
+extern "C" uint8_t swl2001_get_battery_level() { return g_lorawan->get_battery_level(); }
+
 void swl2001_event_handler() {
   ESP_LOGD(TAG, "Event available");
   smtc_modem_event_t current_event;

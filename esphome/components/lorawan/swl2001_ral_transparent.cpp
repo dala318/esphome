@@ -89,7 +89,7 @@ extern "C" bool ral_transparent_handles_part(const char *part_number) {
 }
 
 extern "C" ral_status_t ral_transparent_reset(const void *context) {
-  // return ( ral_status_t ) transparent_reset( context );
+  // return ( ral_status_t ) swl2001_reset( context );
 
   // Call radio configure();
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -97,15 +97,15 @@ extern "C" ral_status_t ral_transparent_reset(const void *context) {
 }
 
 extern "C" ral_status_t ral_transparent_init(const void *context) {
-  // transparent_reg_mod_t reg_mode;
+  // swl2001_reg_mod_t reg_mode;
   // ral_transparent_bsp_get_reg_mode( context, &reg_mode );
-  // return ( ral_status_t ) transparent_set_reg_mode( context, reg_mode );
+  // return ( ral_status_t ) swl2001_set_reg_mode( context, reg_mode );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_wakeup(const void *context) {
-  // return ( ral_status_t ) transparent_wakeup( context );
+  // return ( ral_status_t ) swl2001_wakeup( context );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -113,16 +113,16 @@ extern "C" ral_status_t ral_transparent_wakeup(const void *context) {
 extern "C" ral_status_t ral_transparent_set_sleep(const void *context, const bool retain_config) {
   // if( retain_config == true )
   // {
-  //   ral_status_t status = ( ral_status_t ) transparent_save_context( context );
+  //   ral_status_t status = ( ral_status_t ) swl2001_save_context( context );
   //   if( status != RAL_STATUS_OK ) { return status; }
   // }
-  // return ( ral_status_t ) transparent_set_sleep( context, false, retain_config );
+  // return ( ral_status_t ) swl2001_set_sleep( context, false, retain_config );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_standby(const void *context, ral_standby_cfg_t standby_cfg) {
-  // transparent_standby_cfg_t radio_standby_cfg;
+  // swl2001_standby_cfg_t radio_standby_cfg;
   // switch( standby_cfg )
   // {
   //   case RAL_STANDBY_CFG_RC:
@@ -138,7 +138,7 @@ extern "C" ral_status_t ral_transparent_set_standby(const void *context, ral_sta
   //   default:
   //     return RAL_STATUS_UNKNOWN_VALUE;
   // }
-  // return ( ral_status_t ) transparent_set_standby( context, radio_standby_cfg );
+  // return ( ral_status_t ) swl2001_set_standby( context, radio_standby_cfg );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -158,21 +158,21 @@ extern "C" ral_status_t ral_transparent_set_tx(const void *context) {
 extern "C" ral_status_t ral_transparent_set_rx(const void *context, const uint32_t timeout_in_ms) {
   // if( timeout_in_ms == RAL_RX_TIMEOUT_CONTINUOUS_MODE )
   // {
-  //   return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0xFFFF );
+  //   return ( ral_status_t ) swl2001_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0xFFFF );
   // }
   // else if( timeout_in_ms == 0 )
   // {
-  //   return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0 );
+  //   return ( ral_status_t ) swl2001_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, 0 );
   // }
   // else
   // {
   //   if( timeout_in_ms <= UINT16_MAX )
   //   {
-  //     return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, timeout_in_ms );
+  //     return ( ral_status_t ) swl2001_set_rx( context, TRANSPARENT_TICK_SIZE_1000_US, timeout_in_ms );
   //   }
   //   else
   //   {
-  //     return ( ral_status_t ) transparent_set_rx( context, TRANSPARENT_TICK_SIZE_4000_US, timeout_in_ms >> 2 );
+  //     return ( ral_status_t ) swl2001_set_rx( context, TRANSPARENT_TICK_SIZE_4000_US, timeout_in_ms >> 2 );
   //   }
   // }
   if (swl2001_set_mode_rx()) {
@@ -210,7 +210,7 @@ extern "C" ral_status_t ral_transparent_set_rx_tx_fallback_mode(const void *cont
   //     return RAL_STATUS_UNKNOWN_VALUE;
   //   }
   // }
-  // return ( ral_status_t ) transparent_set_auto_fs( context, fallback_mode_is_fs );
+  // return ( ral_status_t ) swl2001_set_auto_fs( context, fallback_mode_is_fs );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -224,12 +224,12 @@ extern "C" ral_status_t ral_transparent_set_rx_duty_cycle(const void *context, c
                                                           const uint32_t sleep_time_in_ms) {
   // if((rx_time_in_ms <= UINT16_MAX) && (sleep_time_in_ms <= UINT16_MAX))
   // {
-  //   return (ral_status_t)transparent_set_rx_duty_cycle(context, TRANSPARENT_TICK_SIZE_1000_US, rx_time_in_ms,
+  //   return (ral_status_t)swl2001_set_rx_duty_cycle(context, TRANSPARENT_TICK_SIZE_1000_US, rx_time_in_ms,
   //                                                      sleep_time_in_ms);
   // }
   // else
   // {
-  //   return (ral_status_t)transparent_set_rx_duty_cycle(context, TRANSPARENT_TICK_SIZE_4000_US, rx_time_in_ms >> 2,
+  //   return (ral_status_t)swl2001_set_rx_duty_cycle(context, TRANSPARENT_TICK_SIZE_4000_US, rx_time_in_ms >> 2,
   //                                                      sleep_time_in_ms >> 2);
   // }
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -237,19 +237,19 @@ extern "C" ral_status_t ral_transparent_set_rx_duty_cycle(const void *context, c
 }
 
 extern "C" ral_status_t ral_transparent_set_lora_cad(const void *context) {
-  // return ( ral_status_t ) transparent_set_cad( context );
+  // return ( ral_status_t ) swl2001_set_cad( context );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_tx_cw(const void *context) {
-  // return ( ral_status_t ) transparent_set_tx_cw( context );
+  // return ( ral_status_t ) swl2001_set_tx_cw( context );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_tx_infinite_preamble(const void *context) {
-  // return ( ral_status_t ) transparent_set_tx_infinite_preamble( context );
+  // return ( ral_status_t ) swl2001_set_tx_infinite_preamble( context );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -268,7 +268,7 @@ extern "C" ral_status_t ral_transparent_set_tx_cfg(const void *context, const in
   //   .system_output_pwr_in_dbm = output_pwr_in_dbm,
   // };
   // ral_transparent_bsp_get_tx_cfg( context, &tx_cfg_input_params, &tx_cfg_output_params );
-  // return (ral_status_t)transparent_set_tx_params(context, tx_cfg_output_params.chip_output_pwr_in_dbm_configured,
+  // return (ral_status_t)swl2001_set_tx_params(context, tx_cfg_output_params.chip_output_pwr_in_dbm_configured,
   //                                                tx_cfg_output_params.pa_ramp_time);
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -277,12 +277,12 @@ extern "C" ral_status_t ral_transparent_set_tx_cfg(const void *context, const in
 extern "C" ral_status_t ral_transparent_set_pkt_payload(const void *context, const uint8_t *buffer,
                                                         const uint16_t size) {
   // ral_status_t status = RAL_STATUS_ERROR;
-  // status = ( ral_status_t ) transparent_set_buffer_base_address( context, 0x00, 0x00 );
+  // status = ( ral_status_t ) swl2001_set_buffer_base_address( context, 0x00, 0x00 );
   // if( status != RAL_STATUS_OK )
   // {
   //   return status;
   // }
-  // status = ( ral_status_t ) transparent_write_buffer( context, 0x00, buffer, size );
+  // status = ( ral_status_t ) swl2001_write_buffer( context, 0x00, buffer, size );
   // return status;
   swl2001_send_to_radio(buffer, size);
   return RAL_STATUS_OK;
@@ -291,22 +291,22 @@ extern "C" ral_status_t ral_transparent_set_pkt_payload(const void *context, con
 extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uint16_t max_size_in_bytes,
                                                         uint8_t *buffer, uint16_t *size_in_bytes) {
   // uint8_t pkt_len;
-  // transparent_rx_buffer_status_t sx_buf_status;
-  // ral_status_t              status = ( ral_status_t ) transparent_get_rx_buffer_status( context, &sx_buf_status );
+  // swl2001_rx_buffer_status_t sx_buf_status;
+  // ral_status_t              status = ( ral_status_t ) swl2001_get_rx_buffer_status( context, &sx_buf_status );
   // if( status == RAL_STATUS_OK )
   // {
-  //   transparent_pkt_type_t           pkt_type     = TRANSPARENT_PKT_TYPE_GFSK;
-  //   transparent_lora_pkt_len_modes_t pkt_len_mode = TRANSPARENT_LORA_RANGING_PKT_EXPLICIT;
-  //   status = ( ral_status_t ) transparent_get_pkt_type( context, &pkt_type );
+  //   swl2001_pkt_type_t           pkt_type     = TRANSPARENT_PKT_TYPE_GFSK;
+  //   swl2001_lora_pkt_len_modes_t pkt_len_mode = TRANSPARENT_LORA_RANGING_PKT_EXPLICIT;
+  //   status = ( ral_status_t ) swl2001_get_pkt_type( context, &pkt_type );
   //   if( ( status == RAL_STATUS_OK ) && ( pkt_type == TRANSPARENT_PKT_TYPE_LORA ) )
   //   {
-  //       status = ( ral_status_t ) transparent_get_lora_pkt_len_mode( context, &pkt_len_mode );
+  //       status = ( ral_status_t ) swl2001_get_lora_pkt_len_mode( context, &pkt_len_mode );
   //   }
   //   if( status == RAL_STATUS_OK )
   //   {
   //     if((pkt_type == TRANSPARENT_PKT_TYPE_LORA) && (pkt_len_mode == TRANSPARENT_LORA_RANGING_PKT_IMPLICIT))
   //     {
-  //       status = ( ral_status_t ) transparent_get_lora_pkt_len( context, &pkt_len );
+  //       status = ( ral_status_t ) swl2001_get_lora_pkt_len( context, &pkt_len );
   //     }
   //     else
   //     {
@@ -320,7 +320,7 @@ extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uin
   //     {
   //       if( pkt_len <= max_size_in_bytes )
   //       {
-  //         status = (ral_status_t)transparent_read_buffer( context, sx_buf_status.buffer_start_pointer,
+  //         status = (ral_status_t)swl2001_read_buffer( context, sx_buf_status.buffer_start_pointer,
   //         buffer, pkt_len);
   //       }
   //       else
@@ -338,36 +338,36 @@ extern "C" ral_status_t ral_transparent_get_pkt_payload(const void *context, uin
 
 extern "C" ral_status_t ral_transparent_get_irq_status(const void *context, ral_irq_t *irq) {
   // ral_status_t      status          = RAL_STATUS_ERROR;
-  // transparent_irq_mask_t transparent_irq_mask = TRANSPARENT_IRQ_NONE;
-  // status = ( ral_status_t ) transparent_get_irq_status( context, &transparent_irq_mask );
+  // swl2001_irq_mask_t swl2001_irq_mask = TRANSPARENT_IRQ_NONE;
+  // status = ( ral_status_t ) swl2001_get_irq_status( context, &swl2001_irq_mask );
   // if( status != RAL_STATUS_OK )
   // {
   //   return status;
   // }
-  // *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
+  // *irq = ral_transparent_convert_irq_flags_to_ral( swl2001_irq_mask );
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_clear_irq_status(const void *context, const ral_irq_t irq) {
-  // const transparent_irq_mask_t transparent_irq_mask = ral_transparent_convert_irq_flags_from_ral( irq );
-  // return ( ral_status_t ) transparent_clear_irq_status( context, transparent_irq_mask );
+  // const swl2001_irq_mask_t swl2001_irq_mask = ral_transparent_convert_irq_flags_from_ral( irq );
+  // return ( ral_status_t ) swl2001_clear_irq_status( context, swl2001_irq_mask );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_get_and_clear_irq_status(const void *context, ral_irq_t *irq) {
   // ral_status_t      status          = RAL_STATUS_ERROR;
-  // transparent_irq_mask_t transparent_irq_mask = TRANSPARENT_IRQ_NONE;
-  // status = ( ral_status_t ) transparent_get_and_clear_irq_status( context, &transparent_irq_mask );
+  // swl2001_irq_mask_t swl2001_irq_mask = TRANSPARENT_IRQ_NONE;
+  // status = ( ral_status_t ) swl2001_get_and_clear_irq_status( context, &swl2001_irq_mask );
   // if( status != RAL_STATUS_OK )
   // {
   //   return status;
   // }
   // if( irq != 0 )
   // {
-  //   *irq = ral_transparent_convert_irq_flags_to_ral( transparent_irq_mask );
+  //   *irq = ral_transparent_convert_irq_flags_to_ral( swl2001_irq_mask );
   // }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -375,21 +375,21 @@ extern "C" ral_status_t ral_transparent_get_and_clear_irq_status(const void *con
 }
 
 extern "C" ral_status_t ral_transparent_set_dio_irq_params(const void *context, const ral_irq_t irq) {
-  // const uint16_t transparent_irq = ral_transparent_convert_irq_flags_from_ral( irq );
-  // return ( ral_status_t ) transparent_set_dio_irq_params( context, TRANSPARENT_IRQ_ALL, transparent_irq,
+  // const uint16_t swl2001_irq = ral_transparent_convert_irq_flags_from_ral( irq );
+  // return ( ral_status_t ) swl2001_set_dio_irq_params( context, TRANSPARENT_IRQ_ALL, swl2001_irq,
   // TRANSPARENT_IRQ_NONE, TRANSPARENT_IRQ_NONE );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_rf_freq(const void *context, const uint32_t freq_in_hz) {
-  // return ( ral_status_t ) transparent_set_rf_freq( context, freq_in_hz );
+  // return ( ral_status_t ) swl2001_set_rf_freq( context, freq_in_hz );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_pkt_type(const void *context, const ral_pkt_type_t pkt_type) {
-  // transparent_pkt_type_t radio_pkt_type;
+  // swl2001_pkt_type_t radio_pkt_type;
   // switch( pkt_type )
   // {
   //   case RAL_PKT_TYPE_GFSK:
@@ -412,15 +412,15 @@ extern "C" ral_status_t ral_transparent_set_pkt_type(const void *context, const 
   //     return RAL_STATUS_UNKNOWN_VALUE;
   //   }
   // }
-  // return ( ral_status_t ) transparent_set_pkt_type( context, radio_pkt_type );
+  // return ( ral_status_t ) swl2001_set_pkt_type( context, radio_pkt_type );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_get_pkt_type(const void *context, ral_pkt_type_t *pkt_type) {
   // ral_status_t      status = RAL_STATUS_ERROR;
-  // transparent_pkt_type_t radio_pkt_type;
-  // status = ( ral_status_t ) transparent_get_pkt_type( context, &radio_pkt_type );
+  // swl2001_pkt_type_t radio_pkt_type;
+  // status = ( ral_status_t ) swl2001_get_pkt_type( context, &radio_pkt_type );
   // if( status == RAL_STATUS_OK )
   // {
   //   switch( radio_pkt_type )
@@ -447,26 +447,26 @@ extern "C" ral_status_t ral_transparent_get_pkt_type(const void *context, ral_pk
   //   }
   // }
   // return status;
-  ASSERT_NOT_IMPLEMENTED(TAG);
-  return RAL_STATUS_UNSUPPORTED_FEATURE;
+  *pkt_type = RAL_PKT_TYPE_LORA;
+  return RAL_STATUS_OK;
 }
 
 extern "C" ral_status_t ral_transparent_set_gfsk_mod_params(const void *context, const ral_gfsk_mod_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
-  // transparent_mod_params_gfsk_t radio_mod_params = { 0 };
+  // swl2001_mod_params_gfsk_t radio_mod_params = { 0 };
   // status = ral_transparent_convert_gfsk_mod_params_from_ral( params, &radio_mod_params );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // return ( ral_status_t ) transparent_set_gfsk_mod_params( context, &radio_mod_params );
+  // return ( ral_status_t ) swl2001_set_gfsk_mod_params( context, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_gfsk_pkt_params(const void *context, const ral_gfsk_pkt_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
-  // transparent_pkt_params_gfsk_t radio_pkt_params = { 0 };
+  // swl2001_pkt_params_gfsk_t radio_pkt_params = { 0 };
   // status = ral_transparent_convert_gfsk_pkt_params_from_ral( params, &radio_pkt_params );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // return ( ral_status_t ) transparent_set_gfsk_pkt_params( context, &radio_pkt_params );
+  // return ( ral_status_t ) swl2001_set_gfsk_pkt_params( context, &radio_pkt_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -479,20 +479,20 @@ extern "C" ral_status_t ral_transparent_set_gfsk_pkt_address(const void *context
 
 extern "C" ral_status_t ral_transparent_set_lora_mod_params(const void *context, const ral_lora_mod_params_t *params) {
   // ral_status_t             status = RAL_STATUS_ERROR;
-  // transparent_mod_params_lora_t radio_mod_params;
+  // swl2001_mod_params_lora_t radio_mod_params;
   // status = ral_transparent_convert_lora_mod_params_from_ral( params, &radio_mod_params );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // return ( ral_status_t ) transparent_set_lora_mod_params( context, &radio_mod_params );
+  // return ( ral_status_t ) swl2001_set_lora_mod_params( context, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_lora_pkt_params(const void *context, const ral_lora_pkt_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
-  // transparent_pkt_params_lora_t radio_pkt_params = { 0 };
+  // swl2001_pkt_params_lora_t radio_pkt_params = { 0 };
   // status = ral_transparent_convert_lora_pkt_params_from_ral( params, &radio_pkt_params );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // return ( ral_status_t ) transparent_set_lora_pkt_params( context, &radio_pkt_params );
+  // return ( ral_status_t ) swl2001_set_lora_pkt_params( context, &radio_pkt_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -509,20 +509,20 @@ extern "C" ral_status_t ral_transparent_set_lora_symb_nb_timeout(const void *con
 
 extern "C" ral_status_t ral_transparent_set_flrc_mod_params(const void *context, const ral_flrc_mod_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
-  // transparent_mod_params_flrc_t radio_mod_params = { 0 };
+  // swl2001_mod_params_flrc_t radio_mod_params = { 0 };
   // status = ral_transparent_convert_flrc_mod_params_from_ral( params, &radio_mod_params );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // return ( ral_status_t ) transparent_set_flrc_mod_params( context, &radio_mod_params );
+  // return ( ral_status_t ) swl2001_set_flrc_mod_params( context, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_flrc_pkt_params(const void *context, const ral_flrc_pkt_params_t *params) {
   // ral_status_t             status           = RAL_STATUS_ERROR;
-  // transparent_pkt_params_flrc_t radio_pkt_params = { 0 };
+  // swl2001_pkt_params_flrc_t radio_pkt_params = { 0 };
   // status = ral_transparent_convert_flrc_pkt_params_from_ral( params, &radio_pkt_params );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // return ( ral_status_t ) transparent_set_flrc_pkt_params( context, &radio_pkt_params );
+  // return ( ral_status_t ) swl2001_set_flrc_pkt_params( context, &radio_pkt_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -530,8 +530,8 @@ extern "C" ral_status_t ral_transparent_set_flrc_pkt_params(const void *context,
 extern "C" ral_status_t ral_transparent_get_gfsk_rx_pkt_status(const void *context,
                                                                ral_gfsk_rx_pkt_status_t *rx_pkt_status) {
   // ral_status_t             status        = RAL_STATUS_ERROR;
-  // transparent_pkt_status_gfsk_t sx_pkt_status = { 0 };
-  // status = ( ral_status_t ) transparent_get_gfsk_pkt_status( context, &sx_pkt_status );
+  // swl2001_pkt_status_gfsk_t sx_pkt_status = { 0 };
+  // status = ( ral_status_t ) swl2001_get_gfsk_pkt_status( context, &sx_pkt_status );
   // if( status == RAL_STATUS_OK )
   // {
   //   uint8_t rx_status = 0;
@@ -565,8 +565,8 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_pkt_status(const void *conte
 extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_status(const void *context,
                                                                ral_lora_rx_pkt_status_t *rx_pkt_status) {
   // ral_status_t             status        = RAL_STATUS_ERROR;
-  // transparent_pkt_status_lora_t sx_pkt_status = { 0 };
-  // status = ( ral_status_t ) transparent_get_lora_pkt_status( context, &sx_pkt_status );
+  // swl2001_pkt_status_lora_t sx_pkt_status = { 0 };
+  // status = ( ral_status_t ) swl2001_get_lora_pkt_status( context, &sx_pkt_status );
   // if( status == RAL_STATUS_OK )
   // {
   //   rx_pkt_status->rssi_pkt_in_dbm        = sx_pkt_status.rssi;
@@ -581,8 +581,8 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_status(const void *conte
 extern "C" ral_status_t ral_transparent_get_flrc_rx_pkt_status(const void *context,
                                                                ral_flrc_rx_pkt_status_t *rx_pkt_status) {
   // ral_status_t             status;
-  // transparent_pkt_status_flrc_t sx_pkt_status;
-  // status = ( ral_status_t ) transparent_get_flrc_pkt_status( context, &sx_pkt_status );
+  // swl2001_pkt_status_flrc_t sx_pkt_status;
+  // status = ( ral_status_t ) swl2001_get_flrc_pkt_status( context, &sx_pkt_status );
   // if( status == RAL_STATUS_OK )
   // {
   //   rx_pkt_status->rssi_sync_in_dbm = sx_pkt_status.rssi;
@@ -593,53 +593,53 @@ extern "C" ral_status_t ral_transparent_get_flrc_rx_pkt_status(const void *conte
 }
 
 extern "C" ral_status_t ral_transparent_get_rssi_inst(const void *context, int16_t *rssi_in_dbm) {
-  // return ( ral_status_t ) transparent_get_rssi_inst( context, rssi_in_dbm );
+  // return ( ral_status_t ) swl2001_get_rssi_inst( context, rssi_in_dbm );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 uint32_t ral_transparent_get_lora_time_on_air_in_ms(const ral_lora_pkt_params_t *pkt_p,
                                                     const ral_lora_mod_params_t *mod_p) {
-  // transparent_mod_params_lora_t radio_mod_params;
-  // transparent_pkt_params_lora_t radio_pkt_params;
+  // swl2001_mod_params_lora_t radio_mod_params;
+  // swl2001_pkt_params_lora_t radio_pkt_params;
   // ral_transparent_convert_lora_mod_params_from_ral( mod_p, &radio_mod_params );
   // ral_transparent_convert_lora_pkt_params_from_ral( pkt_p, &radio_pkt_params );
-  // return transparent_get_lora_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
+  // return swl2001_get_lora_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 uint32_t ral_transparent_get_gfsk_time_on_air_in_ms(const ral_gfsk_pkt_params_t *pkt_p,
                                                     const ral_gfsk_mod_params_t *mod_p) {
-  // transparent_mod_params_gfsk_t radio_mod_params;
-  // transparent_pkt_params_gfsk_t radio_pkt_params;
+  // swl2001_mod_params_gfsk_t radio_mod_params;
+  // swl2001_pkt_params_gfsk_t radio_pkt_params;
   // ral_transparent_convert_gfsk_mod_params_from_ral( mod_p, &radio_mod_params );
   // ral_transparent_convert_gfsk_pkt_params_from_ral( pkt_p, &radio_pkt_params );
-  // return transparent_get_gfsk_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
+  // return swl2001_get_gfsk_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 uint32_t ral_transparent_get_flrc_time_on_air_in_ms(const ral_flrc_pkt_params_t *pkt_p,
                                                     const ral_flrc_mod_params_t *mod_p) {
-  // transparent_mod_params_flrc_t radio_mod_params;
-  // transparent_pkt_params_flrc_t radio_pkt_params;
+  // swl2001_mod_params_flrc_t radio_mod_params;
+  // swl2001_pkt_params_flrc_t radio_pkt_params;
   // ral_transparent_convert_flrc_mod_params_from_ral( mod_p, &radio_mod_params );
   // ral_transparent_convert_flrc_pkt_params_from_ral( pkt_p, &radio_pkt_params );
-  // return transparent_get_flrc_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
+  // return swl2001_get_flrc_time_on_air_in_ms( &radio_pkt_params, &radio_mod_params );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_gfsk_sync_word(const void *context, const uint8_t *sync_word,
                                                            const uint8_t sync_word_len) {
-  // return ( ral_status_t ) transparent_set_gfsk_sync_word( context, 1, sync_word, sync_word_len );
+  // return ( ral_status_t ) swl2001_set_gfsk_sync_word( context, 1, sync_word, sync_word_len );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
 
 extern "C" ral_status_t ral_transparent_set_lora_sync_word(const void *context, const uint8_t sync_word) {
-  // return ( ral_status_t ) transparent_set_lora_sync_word( context, sync_word );
+  // return ( ral_status_t ) swl2001_set_lora_sync_word( context, sync_word );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -650,7 +650,7 @@ extern "C" ral_status_t ral_transparent_set_flrc_sync_word(const void *context, 
   // {
   //   return RAL_STATUS_UNKNOWN_VALUE;
   // }
-  // return ( ral_status_t ) transparent_set_flrc_sync_word( context, 1, sync_word );
+  // return ( ral_status_t ) swl2001_set_flrc_sync_word( context, 1, sync_word );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -658,9 +658,9 @@ extern "C" ral_status_t ral_transparent_set_flrc_sync_word(const void *context, 
 extern "C" ral_status_t ral_transparent_set_gfsk_crc_params(const void *context, const uint32_t seed,
                                                             const uint32_t polynomial) {
   // ral_status_t status = RAL_STATUS_ERROR;
-  // status = ( ral_status_t ) transparent_set_gfsk_crc_seed( context, ( uint16_t ) seed );
+  // status = ( ral_status_t ) swl2001_set_gfsk_crc_seed( context, ( uint16_t ) seed );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // status = ( ral_status_t ) transparent_set_gfsk_crc_polynomial( context, ( uint16_t ) polynomial );
+  // status = ( ral_status_t ) swl2001_set_gfsk_crc_polynomial( context, ( uint16_t ) polynomial );
   // if( status != RAL_STATUS_OK ) { return status; }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -668,7 +668,7 @@ extern "C" ral_status_t ral_transparent_set_gfsk_crc_params(const void *context,
 }
 
 extern "C" ral_status_t ral_transparent_set_flrc_crc_params(const void *context, const uint32_t seed) {
-  // return ( ral_status_t ) transparent_set_flrc_crc_seed( context, seed );
+  // return ( ral_status_t ) swl2001_set_flrc_crc_seed( context, seed );
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
 }
@@ -680,7 +680,7 @@ extern "C" ral_status_t ral_transparent_set_gfsk_whitening_seed(const void *cont
   // }
   // else
   // {
-  //   return ( ral_status_t ) transparent_set_gfsk_ble_whitening_seed( context, ( uint8_t ) seed );
+  //   return ( ral_status_t ) swl2001_set_gfsk_ble_whitening_seed( context, ( uint8_t ) seed );
   // }
   ASSERT_NOT_IMPLEMENTED(TAG);
   return RAL_STATUS_UNSUPPORTED_FEATURE;
@@ -737,12 +737,12 @@ extern "C" ral_status_t ral_transparent_lr_fhss_get_bit_delay_in_us(const void *
 extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_cr_crc(const void *context, ral_lora_cr_t *cr,
                                                                bool *is_crc_present) {
   // ral_status_t             status = RAL_STATUS_ERROR;
-  // transparent_lora_ranging_cr_t radio_cr;
-  // status = ( ral_status_t ) transparent_get_lora_rx_pkt_cr( context, &radio_cr );
+  // swl2001_lora_ranging_cr_t radio_cr;
+  // status = ( ral_status_t ) swl2001_get_lora_rx_pkt_cr( context, &radio_cr );
   // if( status != RAL_STATUS_OK ) { return status; }
   // status = ral_transparent_convert_lora_cr_to_ral( radio_cr, cr );
   // if( status != RAL_STATUS_OK ) { return status; }
-  // status = ( ral_status_t ) transparent_get_lora_rx_pkt_crc_present( context, is_crc_present );
+  // status = ( ral_status_t ) swl2001_get_lora_rx_pkt_crc_present( context, is_crc_present );
   // if( status != RAL_STATUS_OK ) { return status; }
   // return status;
   ASSERT_NOT_IMPLEMENTED(TAG);
@@ -752,7 +752,7 @@ extern "C" ral_status_t ral_transparent_get_lora_rx_pkt_cr_crc(const void *conte
 extern "C" ral_status_t ral_transparent_get_tx_consumption_in_ua(const void *context, const int8_t output_pwr_in_dbm,
                                                                  const uint32_t rf_freq_in_hz,
                                                                  uint32_t *pwr_consumption_in_ua) {
-  // transparent_reg_mod_t                           reg_mode;
+  // swl2001_reg_mod_t                           reg_mode;
   // ral_transparent_bsp_tx_cfg_output_params_t      tx_cfg_output_params;
   // const ral_transparent_bsp_tx_cfg_input_params_t tx_cfg_input_params = {
   //   .freq_in_hz               = rf_freq_in_hz,
@@ -770,7 +770,7 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_consumption_in_ua(const void
                                                                       const uint32_t bw_dsb_in_hz,
                                                                       const bool rx_boosted,
                                                                       uint32_t *pwr_consumption_in_ua) {
-  // transparent_reg_mod_t radio_reg_mode;
+  // swl2001_reg_mod_t radio_reg_mode;
   // ral_transparent_bsp_get_reg_mode( context, &radio_reg_mode );
   // return ral_transparent_bsp_get_instantaneous_gfsk_rx_power_consumption( context, radio_reg_mode, rx_boosted,
   //                                                                    pwr_consumption_in_ua );
@@ -781,7 +781,7 @@ extern "C" ral_status_t ral_transparent_get_gfsk_rx_consumption_in_ua(const void
 extern "C" ral_status_t ral_transparent_get_lora_rx_consumption_in_ua(const void *context, const ral_lora_bw_t bw,
                                                                       const bool rx_boosted,
                                                                       uint32_t *pwr_consumption_in_ua) {
-  // transparent_reg_mod_t reg_mode;
+  // swl2001_reg_mod_t reg_mode;
   // ral_transparent_bsp_get_reg_mode( context, &reg_mode );
   // return ral_transparent_bsp_get_instantaneous_lora_rx_power_consumption( context, reg_mode, bw, rx_boosted,
   //                                                                    pwr_consumption_in_ua );

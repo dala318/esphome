@@ -34,6 +34,8 @@ bool swl2001_set_mode_wakeup();
 bool swl2001_set_mode_rx();
 bool swl2001_set_mode_tx();
 
+uint8_t swl2001_get_battery_level();
+
 #ifdef __cplusplus
 }
 #endif

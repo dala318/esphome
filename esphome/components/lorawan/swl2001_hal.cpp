@@ -35,6 +35,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "esp_timer.h"
+
 #include "esphome/core/application.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
@@ -70,6 +72,8 @@ esphome::ESPPreferenceObject pref_store_and_forward_ =
 esphome::ESPPreferenceObject pref_secure_element_ =
     esphome::global_preferences->make_preference<uint8_t[MAX_EEPROM_SIZE]>(0x03A6);
 
+esp_timer_handle_t timer_handle_;
+
 /* ------------ Reset management ------------*/
 
 extern "C" void smtc_modem_hal_reset_mcu(void) {
@@ -104,12 +108,21 @@ extern "C" void smtc_modem_hal_start_timer(const uint32_t milliseconds, void (*c
                                            void *context) {
   // hal_lp_timer_start(HAL_LP_TIMER_ID_1, milliseconds,
   //                     &(hal_lp_timer_irq_t) { .context = context, .callback = callback });
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  esp_timer_create_args_t timer_args = {
+      .callback = callback,
+      .arg = context,
+      .dispatch_method = ESP_TIMER_TASK,
+      .name = "smtc_modem_hal_timer",
+  };
+  esp_timer_create(&timer_args, &timer_handle_);
+  esp_timer_start_once(timer_handle_, milliseconds);
+  ESP_LOGI(TAG, "Timer started for %u ms", milliseconds);
 }
 
 extern "C" void smtc_modem_hal_stop_timer(void) {
   // hal_lp_timer_stop(HAL_LP_TIMER_ID_1);
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  esp_timer_stop(timer_handle_);
+  ESP_LOGI(TAG, "Timer stopped");
 }
 
 /* ------------ IRQ management ------------*/
@@ -161,12 +174,10 @@ extern "C" void smtc_modem_hal_context_restore(const modem_context_type_t ctx_ty
       memcpy(buffer, read_buf, size);
       break;
     case CONTEXT_FUOTA:
-      // no fuota example on stm32l0
-      ASSERT_NOT_IMPLEMENTED(TAG);
-      // if (!pref_fuota_.load(read_buf)) {
-      //   ESP_LOGW(TAG, "Failed to load data from EEPROM");
-      // }
-      // memcpy(buffer, read_buf, size);
+      if (!pref_fuota_.load(read_buf)) {
+        ESP_LOGW(TAG, "Failed to load data from EEPROM");
+      }
+      memcpy(buffer, read_buf, size);
       break;
     case CONTEXT_STORE_AND_FORWARD:
       if (!pref_store_and_forward_.load(read_buf)) {
@@ -281,22 +292,23 @@ extern "C" bool smtc_modem_hal_crashlog_get_status(void) {
   // bool temp2 = crashlog_available_noinit & temp;
   // return temp2;
   ASSERT_NOT_IMPLEMENTED(TAG);
-  return true;
+  return false;
 }
 
 /* ------------ Assert management ------------*/
 
 extern "C" void smtc_modem_hal_on_panic(uint8_t *func, uint32_t line, const char *fmt, ...) {
-  // uint8_t out_buff[255] = { 0 };
-  // uint8_t out_len       = snprintf((char*) out_buff, sizeof(out_buff), "%s:%lu ", func, line);
-  // va_list args;
-  // va_start(args, fmt);
-  // out_len += vsprintf((char*) &out_buff[out_len], fmt, args);
-  // va_end(args);
+  uint8_t out_buff[255] = {0};
+  uint8_t out_len = snprintf((char *) out_buff, sizeof(out_buff), "%s:%lu ", func, line);
+  va_list args;
+  va_start(args, fmt);
+  out_len += vsprintf((char *) &out_buff[out_len], fmt, args);
+  va_end(args);
   // smtc_modem_hal_crashlog_store(out_buff, out_len);
   // SMTC_HAL_TRACE_ERROR("Modem panic: %s\n", out_buff);
-  // smtc_modem_hal_reset_mcu();
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  // ASSERT_NOT_IMPLEMENTED(TAG);
+  ESP_LOGE(TAG, "Modem panic: %s", out_buff);
+  smtc_modem_hal_reset_mcu();
 }
 
 /* ------------ Random management ------------*/
@@ -346,13 +358,11 @@ extern "C" void smtc_modem_hal_set_ant_switch(bool is_tx_on) {
 /* ------------ Environment management ------------*/
 
 extern "C" uint8_t smtc_modem_hal_get_battery_level(void) {
-  // Please implement according to used board
   // According to LoRaWan 1.0.4 spec:
   // 0: The end-device is connected to an external power source.
   // 1..254: Battery level, where 1 is the minimum and 254 is the maximum.
   // 255: The end-device was not able to measure the battery level.
-  ASSERT_NOT_IMPLEMENTED(TAG);
-  return 255;
+  return swl2001_get_battery_level();
 }
 
 extern "C" int8_t smtc_modem_hal_get_board_delay_ms(void) {
@@ -368,11 +378,12 @@ extern "C" int8_t smtc_modem_hal_get_board_delay_ms(void) {
 /* ------------ Trace management ------------*/
 
 extern "C" void smtc_modem_hal_print_trace(const char *fmt, ...) {
-  // va_list args;
-  // va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
   // hal_trace_print(fmt, args);
-  // va_end(args);
-  ASSERT_NOT_IMPLEMENTED(TAG);
+  // ASSERT_NOT_IMPLEMENTED(TAG);
+  ESP_LOGD(TAG, fmt, args);
+  va_end(args);
 }
 
 /* ------------ Fuota management ------------*/

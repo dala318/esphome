@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/components/lora/lora.h"
+#include "esphome/components/sensor/sensor.h"
 
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
@@ -51,6 +52,11 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
     this->periodical_uplink_delay_ = periodical_uplink_delay;
     this->after_join_delay_ = after_join_delay;
   }
+  void set_battery_level_sensor(sensor::Sensor *sensor) { this->battery_sensor_ = sensor; }
+  void set_battery_level_min_max(float min, float max) {
+    this->battery_min_ = min;
+    this->battery_max_ = max;
+  }
 
   // Lora interaction functions
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
@@ -61,6 +67,7 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   void send_packet(std::vector<uint8_t> &data, uint8_t port = UPLINK_DEFAULT_PORT,
                    bool confirmed = UPLINK_DEFAULT_CONFIRMED);
   void received_packet(uint8_t *buf, uint8_t len, uint8_t port, float rssi, float snr);
+  uint8_t get_battery_level();
 
   // Listener functions
   void register_listener(LoRaWANListener *listener) { this->listeners_.push_back(listener); }
@@ -73,6 +80,9 @@ class LoRaWAN : public Component, public Parented<lora::LoRa>, lora::LoRaListene
   std::array<uint8_t, 16> gen_app_key_;
   uint32_t periodical_uplink_delay_;
   uint32_t after_join_delay_;
+  sensor::Sensor *battery_sensor_{nullptr};
+  float battery_min_{0.0f};
+  float battery_max_{100.0f};
 
   std::deque<RadioPacket> rx_buffer;
 

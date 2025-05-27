@@ -1,11 +1,19 @@
 """ESPHome LoRa component."""
 
 import logging
+from typing import Any
 
 import esphome.codegen as cg
+from esphome.components import sensor
 from esphome.components.lora import CONF_LORA_ID, LORA_SCHEMA
 import esphome.config_validation as cv
-from esphome.const import CONF_ID
+from esphome.const import (
+    CONF_BATTERY_LEVEL,
+    CONF_ID,
+    CONF_MAX_VALUE,
+    CONF_MIN_VALUE,
+    CONF_SENSOR,
+)
 
 CODEOWNERS = ["@dala318"]
 DEPENDENCIES = ["lora"]
@@ -51,6 +59,16 @@ CONFIG_SCHEMA = (
             cv.Optional(
                 CONF_AFTER_JOIN_DELAY, default="60s"
             ): cv.positive_time_period_seconds,
+            cv.Optional(CONF_BATTERY_LEVEL): cv.Any(
+                cv.use_id(sensor.Sensor),
+                cv.Schema(
+                    {
+                        cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
+                        cv.Optional(CONF_MIN_VALUE): cv.float_,
+                        cv.Optional(CONF_MAX_VALUE): cv.float_,
+                    }
+                ),
+            ),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -58,7 +76,7 @@ CONFIG_SCHEMA = (
 )
 
 
-async def to_code(config):
+async def to_code(config: dict[str, Any]):
     cg.add_library(
         "SWL2001",
         None,
@@ -125,3 +143,17 @@ async def to_code(config):
             config[CONF_PERIODICAL_UPLINK_DELAY], config[CONF_AFTER_JOIN_DELAY]
         )
     )
+    if battery_config := config.get(CONF_BATTERY_LEVEL):
+        if isinstance(battery_config, dict) and CONF_SENSOR in battery_config:
+            battery_sensor = await cg.get_variable(battery_config[CONF_SENSOR])
+            cg.add(var.set_battery_level_sensor(battery_sensor))
+            cg.add(
+                var.set_battery_level_min_max(
+                    battery_config.get(CONF_MIN_VALUE, 0),
+                    battery_config.get(CONF_MAX_VALUE, 100),
+                )
+            )
+        else:
+            battery_sensor = await cg.get_variable(battery_config)
+            cg.add(var.set_battery_level_sensor(battery_sensor))
+            cg.add(var.set_battery_level_min_max(0, 100))
