@@ -19,3 +19,8 @@ lora:
   - platform: sx127x
     id: test_lora
     name: Test LoRa
+
+packet_transport:
+  - platform: lora
+    id: packet_transport_lora
+    lora_id: lora_conf

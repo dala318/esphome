@@ -10,6 +10,7 @@ CODEOWNERS = ["@dala318"]
 
 lora_ns = cg.esphome_ns.namespace("lora")
 LoRa = lora_ns.class_("LoRa", cg.Component)
+LoRaListener = lora_ns.class_("LoRaListener")
 
 IS_PLATFORM_COMPONENT = True
 
