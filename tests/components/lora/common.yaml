@@ -19,6 +19,12 @@ lora:
   - platform: sx127x
     id: test_lora
     name: Test LoRa
+    on_message:
+      then:
+        - lambda: |-
+            ESP_LOGD("lora.on_message", "packet %s", format_hex(x).c_str());
+            ESP_LOGD("lora.on_message", "rssi %.2f", rssi);
+            ESP_LOGD("lora.on_message", "snr %.2f", snr);
 
 packet_transport:
   - platform: lora
