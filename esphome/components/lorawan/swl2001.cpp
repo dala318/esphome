@@ -98,6 +98,26 @@ void swl2001_event_handler();
 
 // Function definitions
 
+extern "C" char *bytes_to_hexstr(const uint8_t *data, size_t len) {
+  if (data == NULL || len == 0) {
+    return NULL;
+  }
+  size_t str_len = len * 3;  // "AA:BB:CC\0" → 3 per byte
+  char *str = (char *) malloc(str_len);
+  if (!str)
+    return NULL;
+  char *p = str;
+  for (size_t i = 0; i < len; ++i) {
+    if (i > 0) {
+      *p++ = ':';  // Add colon between bytes
+    }
+    sprintf(p, "%02X", data[i]);
+    p += 2;
+  }
+  *p = '\0';  // Null terminator
+  return str;
+}
+
 extern "C" void swl2001_init(void *lorawan_component, void *lora_component, keys_t keys, timings_t timings) {
   g_lorawan = static_cast<esphome::lorawan::LoRaWAN *>(lorawan_component);
   g_lora = static_cast<esphome::lora::LoRa *>(lora_component);
@@ -190,9 +210,9 @@ void swl2001_event_handler() {
 #else
         // Get internal credentials
         ASSERT_SMTC_MODEM_RC(smtc_modem_get_chip_eui(stack_id, chip_eui));
-        // SMTC_HAL_TRACE_ARRAY( "CHIP_EUI", chip_eui, SMTC_MODEM_EUI_LENGTH );
+        ESP_LOGV(TAG, "Chip EUI: %s", bytes_to_hexstr(chip_eui, SMTC_MODEM_EUI_LENGTH));
         ASSERT_SMTC_MODEM_RC(smtc_modem_get_pin(stack_id, chip_pin));
-        // SMTC_HAL_TRACE_ARRAY( "CHIP_PIN", chip_pin, SMTC_MODEM_PIN_LENGTH );
+        ESP_LOGV(TAG, "Chip PIN: %s", bytes_to_hexstr(chip_pin, SMTC_MODEM_PIN_LENGTH));
 #endif
         // Set user region
         ASSERT_SMTC_MODEM_RC(smtc_modem_set_region(stack_id, region));
@@ -243,7 +263,7 @@ void swl2001_event_handler() {
         // Get downlink data
         ASSERT_SMTC_MODEM_RC(smtc_modem_get_downlink_data(rx_payload, &rx_payload_size, &rx_metadata, &rx_remaining));
         ESP_LOGD(TAG, "Data received on port %u", rx_metadata.fport);
-        // SMTC_HAL_TRACE_ARRAY( "Received payload", rx_payload, rx_payload_size );
+        ESP_LOGV(TAG, "Received payload: %s", bytes_to_hexstr(rx_payload, rx_payload_size));
         g_lorawan->received_packet(rx_payload, rx_payload_size, rx_metadata.fport, rx_metadata.rssi, rx_metadata.snr);
         break;
 
@@ -390,8 +410,8 @@ void swl2001_event_handler() {
           int16_t snr;
           uint8_t rx_payload_length;
           smtc_modem_test_get_last_rx_packets(&rssi, &snr, rx_payload, &rx_payload_length);
-          // SMTC_HAL_TRACE_ARRAY( "rx_payload", rx_payload, rx_payload_length );
           ESP_LOGD(TAG, "rssi: %d, snr: %d", rssi, snr);
+          ESP_LOGV(TAG, "rx_payload %s", bytes_to_hexstr(rx_payload, rx_payload_length));
         }
         break;
       }
