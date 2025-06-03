@@ -104,7 +104,7 @@ async def to_code(config: dict[str, Any]):
     cg.add_library(
         "Arduino-LMIC000",
         "v5.0.1",
-        "https://github.com/dala318/arduino-lmic#cb5cfde20b0895a333df6e9103a52eba5daf7bd8",
+        "https://github.com/dala318/arduino-lmic#4d94bdf549ef64dc819fae5ccfcd25c074a0d75f",
     )
     cg.add_build_flag(
         f"-DLMIC_LORAWAN_SPEC_VERSION={LORAWAN_VERSION_TO_FLAG[config[CONF_LORAWAN_VERSION]]}"

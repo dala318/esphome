@@ -4,14 +4,21 @@
 #include "lmic_component.h"
 
 #include <arduino_lmic.h>
+#include <hal/hal.h>
 
-// extern "C" {
-// // #include <lbm_lib/lora_basics_modem_version.h>
-// #include "lora_basics_modem_version.h"
-// #include "smtc_modem_core/lmic_manager/lmic_join_management.h"
-// }
-// #include "swl2001.h"
-// #include "swl2001_radio_callbacks.h"
+const lmic_pinmap lmic_pins = {
+    // .nss = 8,
+    .nss = LMIC_UNUSED_PIN,
+    .rxtx = LMIC_UNUSED_PIN,
+    // .rst = 4,
+    .rst = LMIC_UNUSED_PIN,
+    // .dio = {3, 6, LMIC_UNUSED_PIN},
+    .dio = {LMIC_UNUSED_PIN, LMIC_UNUSED_PIN, LMIC_UNUSED_PIN},
+    // .rxtx_rx_active = 0,
+    .rxtx_rx_active = 0,
+    .rssi_cal = 8,  // LBT cal for the Adafruit Feather M0 LoRa, in dB
+    .spi_freq = 8000000,
+};
 
 namespace esphome {
 namespace lmic {
