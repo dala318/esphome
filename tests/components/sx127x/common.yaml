@@ -18,6 +18,7 @@ sx127x:
   deviation: 5000
   rx_start: true
   rx_floor: -90
+  packet_mode: true
   payload_length: 8
   sync_value: [0x33, 0x33]
   shaping: NONE

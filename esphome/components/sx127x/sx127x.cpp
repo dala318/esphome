@@ -48,7 +48,7 @@ void SX127x::write_fifo_(const std::vector<uint8_t> &packet) {
 }
 
 void SX127x::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up SX127x...");
+  ESP_LOGCONFIG(TAG, "Running setup");
 
   // setup reset
   this->rst_pin_->setup();
@@ -150,12 +150,17 @@ void SX127x::configure_fsk_ook_() {
   }
 
   // configure packet mode
-  if (this->payload_length_ > 0) {
+  if (this->packet_mode_) {
     uint8_t crc_mode = (this->crc_enable_) ? CRC_ON : CRC_OFF;
-    this->write_register_(REG_FIFO_THRESH, TX_START_FIFO_LEVEL | (this->payload_length_ - 1));
-    this->write_register_(REG_PACKET_CONFIG_1, crc_mode);
+    this->write_register_(REG_FIFO_THRESH, TX_START_FIFO_EMPTY);
+    if (this->payload_length_ > 0) {
+      this->write_register_(REG_PAYLOAD_LENGTH_LSB, this->payload_length_);
+      this->write_register_(REG_PACKET_CONFIG_1, crc_mode | FIXED_LENGTH);
+    } else {
+      this->write_register_(REG_PAYLOAD_LENGTH_LSB, this->get_max_packet_size() - 1);
+      this->write_register_(REG_PACKET_CONFIG_1, crc_mode | VARIABLE_LENGTH);
+    }
     this->write_register_(REG_PACKET_CONFIG_2, PACKET_MODE);
-    this->write_register_(REG_PAYLOAD_LENGTH_LSB, this->payload_length_);
   } else {
     this->write_register_(REG_PACKET_CONFIG_2, CONTINUOUS_MODE);
   }
@@ -247,7 +252,7 @@ size_t SX127x::get_max_packet_size() {
 
 void SX127x::transmit_packet(const std::vector<uint8_t> &packet) {
   if (this->payload_length_ > 0 && this->payload_length_ != packet.size()) {
-    ESP_LOGE(TAG, "Packet size does not match payload length");
+    ESP_LOGE(TAG, "Packet size does not match config");
     return;
   }
   if (packet.empty() || packet.size() > this->get_max_packet_size()) {
@@ -264,8 +269,12 @@ void SX127x::transmit_packet(const std::vector<uint8_t> &packet) {
     this->write_fifo_(packet);
     this->set_mode_tx();
   } else {
-    this->set_mode_tx();
+    this->set_mode_standby();
+    if (this->payload_length_ == 0) {
+      this->write_register_(REG_FIFO, packet.size());
+    }
     this->write_fifo_(packet);
+    this->set_mode_tx();
   }
   uint32_t start = millis();
   while (!this->dio0_pin_->digital_read()) {
@@ -308,8 +317,13 @@ void SX127x::loop() {
         }
       }
     }
-  } else if (this->payload_length_ > 0 && this->dio0_pin_->digital_read()) {
-    std::vector<uint8_t> packet(this->payload_length_);
+  } else if (this->packet_mode_ && this->dio0_pin_->digital_read()) {
+    std::vector<uint8_t> packet;
+    uint8_t payload_length = this->payload_length_;
+    if (payload_length == 0) {
+      payload_length = this->read_register_(REG_FIFO);
+    }
+    packet.resize(payload_length);
     this->read_fifo_(packet);
     this->call_listeners_(packet, 0.0f, 0.0f);
   }
@@ -319,7 +333,7 @@ void SX127x::run_image_cal() {
   uint32_t start = millis();
   uint8_t mode = this->read_register_(REG_OP_MODE);
   if ((mode & MODE_MASK) != MODE_STDBY) {
-    ESP_LOGE(TAG, "Radio needs to be in standby mode for image cal");
+    ESP_LOGE(TAG, "Need to be in standby for image cal");
     return;
   }
   if (mode & MOD_LORA) {
@@ -446,10 +460,13 @@ void SX127x::dump_config() {
       ESP_LOGCONFIG(TAG, "  Sync Value: 0x%s", format_hex(this->sync_value_).c_str());
     }
   }
+  if (this->modulation_ != MOD_LORA) {
+    ESP_LOGCONFIG(TAG, "  Packet Mode: %s", TRUEFALSE(this->packet_mode_));
+  }
   if (this->payload_length_ > 0) {
     ESP_LOGCONFIG(TAG, "  Payload Length: %" PRIu32, this->payload_length_);
   }
-  if (this->payload_length_ > 0 || this->modulation_ == MOD_LORA) {
+  if (this->packet_mode_ || this->modulation_ == MOD_LORA) {
     ESP_LOGCONFIG(TAG, "  CRC Enable: %s", TRUEFALSE(this->crc_enable_));
   }
   if (this->is_failed()) {
