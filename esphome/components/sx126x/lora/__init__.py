@@ -8,8 +8,8 @@ import esphome.final_validate as fv
 from .. import (
     CONF_MODULATION,
     CONF_SX126X_ID,
-    CONFIG_SCHEMA as SX126X_CONFIG_SCHEMA,
-    MOD,
+    # CONFIG_SCHEMA as SX126X_CONFIG_SCHEMA,
+    # MOD,
     SX126x,
     SX126xListener,
     sx126x_ns,
@@ -25,15 +25,18 @@ REFERENCE_CONFIG_SCHEMA = lora_schema(SX126xLoRa).extend(
     }
 )
 
+# Using combined LoRa and SX126x config schema does not work as the SX126x component
+# files one level up are not automatically copied to the build directory.
 
-INCLUDE_CONFIG_SCHEMA = SX126X_CONFIG_SCHEMA.extend(lora_schema(SX126xLoRa)).extend(
-    {
-        cv.GenerateID(CONF_SX126X_ID): cv.declare_id(SX126x),
-        cv.Optional(CONF_MODULATION, default="LORA"): cv.enum({"LORA": MOD["LORA"]}),
-    }
-)
+# INCLUDE_CONFIG_SCHEMA = SX126X_CONFIG_SCHEMA.extend(lora_schema(SX126xLoRa)).extend(
+#     {
+#         cv.GenerateID(CONF_SX126X_ID): cv.declare_id(SX126x),
+#         cv.Optional(CONF_MODULATION, default="LORA"): cv.enum({"LORA": MOD["LORA"]}),
+#     }
+# )
 
-CONFIG_SCHEMA = cv.Any(REFERENCE_CONFIG_SCHEMA, INCLUDE_CONFIG_SCHEMA)
+# CONFIG_SCHEMA = cv.Any(REFERENCE_CONFIG_SCHEMA, INCLUDE_CONFIG_SCHEMA)
+CONFIF_SCHEMA = REFERENCE_CONFIG_SCHEMA
 
 
 def _final_validate(config):
