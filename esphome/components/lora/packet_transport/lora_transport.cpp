@@ -14,7 +14,7 @@ void LoRaTransport::update() {
   this->resend_data_ = true;
 }
 
-void LoRaTransport::send_packet(std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
+void LoRaTransport::send_packet(const std::vector<uint8_t> &buf) const { this->parent_->send_packet(buf); }
 
 void LoRaTransport::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
   std::vector<uint8_t> temp = packet;
