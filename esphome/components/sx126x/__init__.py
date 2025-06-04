@@ -140,9 +140,6 @@ SetModeStandbyAction = sx126x_ns.class_(
     "SetModeStandbyAction", automation.Action, cg.Parented.template(SX126x)
 )
 
-# Work-around to ensure that the sx127x component is set in modulation LORA when used in LoRa Component
-sx126x_modes = {}
-
 
 def validate_raw_data(value):
     if isinstance(value, str):
@@ -157,7 +154,6 @@ def validate_raw_data(value):
 
 
 def validate_config(config):
-    sx126x_modes[str(config[CONF_ID])] = config[CONF_MODULATION]
     lora_bws = [
         "7_8kHz",
         "10_4kHz",
