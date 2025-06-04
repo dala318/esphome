@@ -30,6 +30,7 @@
 
 #define LMIC_DR_LEGACY 0
 
+#include "lmic_interface.h"
 #include <lmic.h>
 
 // // This driver is based on Rev. 2.1 of the Semtech SX1261/2 Data Sheet DS.SX1261-2.W.APP
@@ -1423,39 +1424,41 @@ An interrupt will occur when a packet is recieved or the receive times out,
 which will cause `LMIC.osjob` to be scheduled with its current function.
 
 */
-
 void os_radio(u1_t mode) {
-  //     switch (mode) {
-  //       case RADIO_RST:
-  //         // put radio to sleep. Sleep needs to be entered from standby_RC mode
-  //         if ((getStatus() | SX126x_GETSTATUS_CHIPMODE_MASK) != SX126x_CHIPMODE_STDBY_RC) {
-  //             setStandby(STDBY_RC);
-  //         }
-  //         setSleep(0x00);
-  //         break;
+  switch (mode) {
+    case RADIO_RST:
+      // put radio to sleep. Sleep needs to be entered from standby_RC mode
+      // if ((getStatus() | SX126x_GETSTATUS_CHIPMODE_MASK) != SX126x_CHIPMODE_STDBY_RC) {
+      //     setStandby(STDBY_RC);
+      // }
+      // setSleep(0x00);
+      lmic_set_mode_sleep();
+      break;
 
-  //       case RADIO_TX:
-  //         // transmit frame now
-  //         LMIC.txend = 0;
-  //         starttx(); // buf=LMIC.frame, len=LMIC.dataLen
-  //         break;
+    case RADIO_TX:
+      // transmit frame now
+      // LMIC.txend = 0;
+      // starttx(); // buf=LMIC.frame, len=LMIC.dataLen
+      lmic_set_mode_tx();
+      break;
 
-  //       case RADIO_TX_AT:
-  //         if (LMIC.txend == 0)
-  //             LMIC.txend = 1;
-  //         starttx();
-  //         break;
+    case RADIO_TX_AT:
+      // if (LMIC.txend == 0)
+      //     LMIC.txend = 1;
+      // starttx();
+      break;
 
-  //       case RADIO_RX:
-  //         // receive frame now (exactly at rxtime)
-  //         startrx(RXMODE_SINGLE); // buf=LMIC.frame, time=LMIC.rxtime, timeout=LMIC.rxsyms
-  //         break;
+    case RADIO_RX:
+      // receive frame now (exactly at rxtime)
+      // startrx(RXMODE_SINGLE); // buf=LMIC.frame, time=LMIC.rxtime, timeout=LMIC.rxsyms
+      lmic_set_mode_rx();
+      break;
 
-  //       case RADIO_RXON:
-  //         // start scanning for beacon now
-  //         startrx(RXMODE_SCAN); // buf=LMIC.frame
-  //         break;
-  //     }
+    case RADIO_RXON:
+      // start scanning for beacon now
+      // startrx(RXMODE_SCAN); // buf=LMIC.frame
+      break;
+  }
 }
 
 ostime_t os_getRadioRxRampup(void) {

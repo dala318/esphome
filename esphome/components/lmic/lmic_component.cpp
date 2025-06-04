@@ -2,6 +2,7 @@
 #include "esphome/core/log.h"
 
 #include "lmic_component.h"
+#include "lmic_interface.h"
 
 #include <arduino_lmic.h>
 #include <hal/hal.h>
@@ -42,6 +43,7 @@ void do_send(osjob_t *j) {
 
 void LMICComponent::setup() {
   Component::setup();
+  lmic_init(this, this->parent_);
 
   // Register listener to the LoRa component
   this->parent_->register_listener(this);
@@ -52,6 +54,7 @@ void LMICComponent::setup() {
   uint8_t join_eui[8];
   uint8_t gen_app_key[16];
 
+  u4_t dev_addr = 0x01234567;
   std::copy(this->app_key_.begin(), this->app_key_.end(), app_key);
   std::copy(this->dev_eui_.begin(), this->dev_eui_.end(), dev_eui);
   std::copy(this->join_eui_.begin(), this->join_eui_.end(), join_eui);
@@ -64,11 +67,6 @@ void LMICComponent::setup() {
 
   os_init();
   LMIC_reset();
-  u4_t dev_addr = 0x01234567;
-  // uint8_t nwkskey[sizeof(NWKSKEY)];
-  // uint8_t appskey[sizeof(APPSKEY)];
-  // memcpy_P(appskey, APPSKEY, sizeof(APPSKEY));
-  // memcpy_P(nwkskey, NWKSKEY, sizeof(NWKSKEY));
   LMIC_setSession(0x13, dev_addr, gen_app_key, app_key);
 
   /*
