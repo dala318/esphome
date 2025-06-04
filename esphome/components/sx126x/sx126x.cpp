@@ -105,7 +105,7 @@ void SX126x::write_register_(uint16_t reg, uint8_t *data, uint8_t size) {
 }
 
 void SX126x::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up SX126x...");
+  ESP_LOGCONFIG(TAG, "Running setup");
 
   // setup pins
   this->busy_pin_->setup();
@@ -158,7 +158,7 @@ void SX126x::configure() {
 
   // check silicon version to make sure hw is ok
   this->read_register_(REG_VERSION_STRING, (uint8_t *) this->version_, 16);
-  if (strncmp(this->version_, "SX126", 5) != 0) {
+  if (strncmp(this->version_, "SX126", 5) != 0 && strncmp(this->version_, "LLCC68", 6) != 0) {
     this->mark_failed();
     return;
   }
@@ -288,7 +288,7 @@ void SX126x::set_packet_params_(uint8_t payload_length) {
 
 void SX126x::transmit_packet(const std::vector<uint8_t> &packet) {
   if (this->payload_length_ > 0 && this->payload_length_ != packet.size()) {
-    ESP_LOGE(TAG, "Packet size does not match payload length");
+    ESP_LOGE(TAG, "Packet size does not match config");
     return;
   }
   if (packet.empty() || packet.size() > this->get_max_packet_size()) {

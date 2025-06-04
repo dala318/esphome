@@ -121,14 +121,24 @@ SHAPING = {
     "NONE": SX126xPulseShape.NO_FILTER,
 }
 
-RunImageCalAction = sx126x_ns.class_("RunImageCalAction", automation.Action)
+RunImageCalAction = sx126x_ns.class_(
+    "RunImageCalAction", automation.Action, cg.Parented.template(SX126x)
+)
 SendPacketAction = sx126x_ns.class_(
     "SendPacketAction", automation.Action, cg.Parented.template(SX126x)
 )
-SetModeTxAction = sx126x_ns.class_("SetModeTxAction", automation.Action)
-SetModeRxAction = sx126x_ns.class_("SetModeRxAction", automation.Action)
-SetModeSleepAction = sx126x_ns.class_("SetModeSleepAction", automation.Action)
-SetModeStandbyAction = sx126x_ns.class_("SetModeStandbyAction", automation.Action)
+SetModeTxAction = sx126x_ns.class_(
+    "SetModeTxAction", automation.Action, cg.Parented.template(SX126x)
+)
+SetModeRxAction = sx126x_ns.class_(
+    "SetModeRxAction", automation.Action, cg.Parented.template(SX126x)
+)
+SetModeSleepAction = sx126x_ns.class_(
+    "SetModeSleepAction", automation.Action, cg.Parented.template(SX126x)
+)
+SetModeStandbyAction = sx126x_ns.class_(
+    "SetModeStandbyAction", automation.Action, cg.Parented.template(SX126x)
+)
 
 
 def validate_raw_data(value):
@@ -175,7 +185,7 @@ def validate_config(config):
     return config
 
 
-CONFIG_SCHEMA = cv.All(
+CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(SX126x),
@@ -188,7 +198,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_DIO1_PIN): pins.internal_gpio_input_pin_schema,
             cv.Required(CONF_FREQUENCY): cv.int_range(min=137000000, max=1020000000),
             cv.Required(CONF_HW_VERSION): cv.one_of(
-                "sx1261", "sx1262", "sx1268", lower=True
+                "sx1261", "sx1262", "sx1268", "llcc68", lower=True
             ),
             cv.Required(CONF_MODULATION): cv.enum(MOD),
             cv.Optional(CONF_ON_PACKET): automation.validate_automation(single=True),
@@ -211,8 +221,8 @@ CONFIG_SCHEMA = cv.All(
         },
     )
     .extend(cv.COMPONENT_SCHEMA)
-    .extend(spi.spi_device_schema(True, 8e6, "mode0")),
-    validate_config,
+    .extend(spi.spi_device_schema(True, 8e6, "mode0"))
+    .add_extra(validate_config)
 )
 
 
@@ -282,8 +292,8 @@ NO_ARGS_ACTION_SCHEMA = automation.maybe_simple_id(
     "sx126x.set_mode_standby", SetModeStandbyAction, NO_ARGS_ACTION_SCHEMA
 )
 async def no_args_action_to_code(config, action_id, template_arg, args):
-    paren = await cg.get_variable(config[CONF_ID])
-    var = cg.new_Pvariable(action_id, template_arg, paren)
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
     return var
 
 
