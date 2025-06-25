@@ -202,7 +202,7 @@ class Component {
 
   virtual bool can_proceed();
 
-  void set_activity_reporting(bool active);
+  void set_report_activity(bool active);
 
   bool status_has_warning() const;
 

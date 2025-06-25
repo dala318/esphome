@@ -163,12 +163,18 @@ ErrorCode IDFI2CBus::readv(uint8_t address, ReadBuffer *buffers, size_t cnt) {
     return ERROR_NOT_ACKNOWLEDGED;
   } else if (err == ESP_ERR_TIMEOUT) {
     ESP_LOGVV(TAG, "RX from %02X failed: timeout", address);
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return ERROR_TIMEOUT;
   } else if (err != ESP_OK) {
     ESP_LOGVV(TAG, "RX from %02X failed: %s", address, esp_err_to_name(err));
     return ERROR_UNKNOWN;
   }
 
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Read data");
+#endif
 #ifdef ESPHOME_LOG_HAS_VERY_VERBOSE
   char debug_buf[4];
   std::string debug_hex;
@@ -252,6 +258,9 @@ ErrorCode IDFI2CBus::writev(uint8_t address, WriteBuffer *buffers, size_t cnt, b
     ESP_LOGVV(TAG, "TX to %02X failed: %s", address, esp_err_to_name(err));
     return ERROR_UNKNOWN;
   }
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Write data");
+#endif
   return ERROR_OK;
 }
 

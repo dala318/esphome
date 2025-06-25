@@ -150,6 +150,9 @@ void ESP8266UartComponent::check_logger_conflict() {
 
 void ESP8266UartComponent::write_array(const uint8_t *data, size_t len) {
   if (this->hw_serial_ != nullptr) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_active("Writing data");
+#endif
     this->hw_serial_->write(data, len);
   } else {
     for (size_t i = 0; i < len; i++)
@@ -162,24 +165,39 @@ void ESP8266UartComponent::write_array(const uint8_t *data, size_t len) {
 #endif
 }
 bool ESP8266UartComponent::peek_byte(uint8_t *data) {
-  if (!this->check_read_timeout_())
+  if (!this->check_read_timeout_()) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   if (this->hw_serial_ != nullptr) {
     *data = this->hw_serial_->peek();
   } else {
     *data = this->sw_serial_->peek_byte();
   }
+#ifdef USE_ACTIVITY_LED
+  if (data[0] != 0u)
+    this->activity_set_active("Reading data");
+#endif
   return true;
 }
 bool ESP8266UartComponent::read_array(uint8_t *data, size_t len) {
-  if (!this->check_read_timeout_(len))
+  if (!this->check_read_timeout_(len)) {
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return false;
+  }
   if (this->hw_serial_ != nullptr) {
     this->hw_serial_->readBytes(data, len);
   } else {
     for (size_t i = 0; i < len; i++)
       data[i] = this->sw_serial_->read_byte();
   }
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Reading data");
+#endif
 #ifdef USE_UART_DEBUGGER
   for (size_t i = 0; i < len; i++) {
     this->debug_callback_.call(UART_DIRECTION_RX, data[i]);

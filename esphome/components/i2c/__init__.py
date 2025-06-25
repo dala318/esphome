@@ -8,6 +8,7 @@ from esphome.const import (
     CONF_ID,
     CONF_INPUT,
     CONF_OUTPUT,
+    CONF_REPORT_ACTIVITY,
     CONF_SCAN,
     CONF_SCL,
     CONF_SDA,
@@ -63,6 +64,7 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_TIMEOUT): cv.positive_time_period,
             cv.Optional(CONF_SCAN, default=True): cv.boolean,
+            cv.Optional(CONF_REPORT_ACTIVITY, default=True): cv.boolean,
         }
     ).extend(cv.COMPONENT_SCHEMA),
     cv.only_on([PLATFORM_ESP32, PLATFORM_ESP8266, PLATFORM_RP2040]),
@@ -85,6 +87,7 @@ async def to_code(config):
 
     cg.add(var.set_frequency(int(config[CONF_FREQUENCY])))
     cg.add(var.set_scan(config[CONF_SCAN]))
+    cg.add(var.set_report_activity(config[CONF_REPORT_ACTIVITY]))
     if CONF_TIMEOUT in config:
         cg.add(var.set_timeout(int(config[CONF_TIMEOUT].total_microseconds)))
     if CORE.using_arduino:

@@ -218,7 +218,7 @@ bool Component::is_ready() const {
          (this->component_state_ & COMPONENT_STATE_MASK) == COMPONENT_STATE_SETUP;
 }
 bool Component::can_proceed() { return true; }
-void Component::set_activity_reporting(bool active) { this->report_activity_ = active; }
+void Component::set_report_activity(bool active) { this->report_activity_ = active; }
 bool Component::status_has_warning() const { return this->component_state_ & STATUS_LED_WARNING; }
 bool Component::status_has_error() const { return this->component_state_ & STATUS_LED_ERROR; }
 void Component::status_set_warning(const char *message) {

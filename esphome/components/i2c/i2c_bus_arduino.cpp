@@ -129,9 +129,15 @@ ErrorCode ArduinoI2CBus::readv(uint8_t address, ReadBuffer *buffers, size_t cnt)
   size_t ret = wire_->requestFrom(address, to_request, true);
   if (ret != to_request) {
     ESP_LOGVV(TAG, "RX %u from %02X failed with error %u", to_request, address, ret);
+#ifdef USE_ACTIVITY_LED
+    this->activity_set_bussy("Read timeout");
+#endif
     return ERROR_TIMEOUT;
   }
 
+#ifdef USE_ACTIVITY_LED
+  this->activity_set_active("Read data");
+#endif
   for (size_t i = 0; i < cnt; i++) {
     const auto &buf = buffers[i];
     for (size_t j = 0; j < buf.len; j++)
@@ -196,6 +202,9 @@ ErrorCode ArduinoI2CBus::writev(uint8_t address, WriteBuffer *buffers, size_t cn
   uint8_t status = wire_->endTransmission(stop);
   switch (status) {
     case 0:
+#ifdef USE_ACTIVITY_LED
+      this->activity_set_active("Write data");
+#endif
       return ERROR_OK;
     case 1:
       // transmit buffer not large enough
